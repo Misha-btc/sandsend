@@ -21,12 +21,9 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
         .then(response => { // Обрабатываем успешный ответ
             if (response.data && Array.isArray(response.data.result)) { // Проверяем, является ли результат массивом
                 setUtxos(response.data.result); // Обновляем состояние UTXO
-                localStorage.setItem('utxos', JSON.stringify(response.data.result)); // Сохраняем UTXO в localStorage
             } else {
                 setUtxos([]); // Если результат не массив, устанавливаем пустой массив
-                localStorage.setItem('utxos', JSON.stringify([])); // Сохраняем пустой массив в localStorage
             }
-            setLoading(false); // Останавливаем состояние загрузки
         })
         .catch(error => { // Обрабатываем ошибку запроса
             console.error('Error fetching UTXOs:', error); // Выводим ошибку в консоль
@@ -38,6 +35,7 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
         if (utxos.length === 0) return; // Если нет UTXO, выходим из функции
         const txidVoutArray = utxos.map(utxo => ["ord_output", [`${utxo.txid}:${utxo.vout}`]]); // Формируем массив параметров для запроса
         try {
+            setLoading(true); // Останавливаем состояние загрузки
             const response = await axios.post(url, { // Выполняем POST-запрос с помощью axios
                 jsonrpc: "2.0",
                 id: 1,
@@ -62,42 +60,33 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
                 console.log(details); 
                 setTransactionDetails(details); // Обновляем состояние деталей транзакций
                 localStorage.setItem('transactionDetails', JSON.stringify(details)); // Сохраняем детали транзакций в localStorage
+                setLoading(false); // Останавливаем состояние загрузки
             }
         } catch (error) { // Обрабатываем ошибку запроса
             console.error('Error fetching transaction details:', error); // Выводим ошибку в консоль
+            setLoading(false); // Останавливаем состояние загрузки
         }
     }, [url]); // useCallback зависит от url
 
     useEffect(() => { // useEffect для начальной загрузки данных из localStorage и выполнения fetchUtxos
-        const storedUtxos = localStorage.getItem('utxos'); // Получаем UTXO из localStorage
         const storedDetails = localStorage.getItem('transactionDetails'); // Получаем детали транзакций из localStorage
-        if (storedUtxos) { // Если есть сохраненные UTXO
-            try {
-                const parsedUtxos = JSON.parse(storedUtxos); // Парсим сохраненные UTXO
-                if (Array.isArray(parsedUtxos)) {
-                    setUtxos(parsedUtxos); // Обновляем состояние UTXO
-                } else {
-                    fetchUtxos(); // Выполняем fetchUtxos, если данные некорректны
-                }
-            } catch (e) {
-                console.error('Error parsing stored UTXOs', e); // Выводим ошибку в консоль
-                fetchUtxos(); // Выполняем fetchUtxos в случае ошибки
-            }
-        } else {
-            fetchUtxos(); // Выполняем fetchUtxos, если данных нет в localStorage
-        }
 
         if (storedDetails) { // Если есть сохраненные детали транзакций
             try {
                 const parsedDetails = JSON.parse(storedDetails); // Парсим сохраненные детали транзакций
                 if (typeof parsedDetails === 'object' && parsedDetails !== null) {
                     setTransactionDetails(parsedDetails); // Обновляем состояние деталей транзакций
+                } else {
+                    fetchUtxos();
                 }
             } catch (e) {
                 console.error('Error parsing stored transaction details', e); // Выводим ошибку в консоль
             }
+        } else {
+            fetchUtxos();
         }
-    }, [fetchUtxos]); // useEffect зависит от fetchUtxos
+        
+    }, [fetchUtxos]); // useEffect зависит от ...
 
     useEffect(() => { // useEffect для загрузки деталей транзакций при обновлении списка UTXO
         if (utxos.length > 0) {
