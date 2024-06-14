@@ -5,7 +5,6 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
     const [utxos, setUtxos] = useState([]); // Состояние для хранения списка UTXO
     const [loading, setLoading] = useState(false); // Состояние для отслеживания загрузки данных
     const [transactionDetails, setTransactionDetails] = useState({}); // Состояние для хранения деталей транзакций
-    const [utxoData, setUtxoData] = useState({}); // Состояние для хранения cодержимого в UTXO
 
     const fetchUtxos = useCallback(() => { // Функция для получения UTXO, мемоизированная с помощью useCallback
         setLoading(true); // Устанавливаем состояние загрузки
@@ -53,9 +52,14 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
                 const details = {};
                 response.data.result.forEach((res, index) => {
                     if (res.result) {
-                        details[`${utxos[index].txid}:${utxos[index].vout}`] = res.result; // Обновляем объект деталей транзакций
+                        // Создаем объект с ключами из res.result и utxos[index] на разных уровнях вложенности
+                        details[`${utxos[index].txid}:${utxos[index].vout}`] = {
+                            ...utxos[index] ,
+                            ...res.result
+                        };
                     }
                 });
+                console.log(details); 
                 setTransactionDetails(details); // Обновляем состояние деталей транзакций
                 localStorage.setItem('transactionDetails', JSON.stringify(details)); // Сохраняем детали транзакций в localStorage
             }
