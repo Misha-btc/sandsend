@@ -1,20 +1,15 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import SelectedUtxos from './SelectedUtxos';
 
 function TransactionCanvas() {
-    useEffect(() => {
-        // Отключаем прокрутку при монтировании компонента
-        document.body.style.overflow = 'hidden';
-
-        // Включаем прокрутку обратно при размонтировании компонента
-        return () => {
-            document.body.style.overflow = 'auto';
-        };
-    }, []);
-
     return (
-        <div className="flex-grow flex justify-center items-center overflow-auto w-full h-full">
-            {/* Ваша логика для интерактивного канваса */}
-            <p>Interactive Canvas Area</p>
+        <div className="mt-3 mb-1 flex h-full overflow-auto">
+            <div className="w-1/2 h-full bg-gray-200">
+                <SelectedUtxos />
+            </div>
+            <div className="w-1/2 h-full bg-neutral-900">
+                
+            </div>
         </div>
     );
 }

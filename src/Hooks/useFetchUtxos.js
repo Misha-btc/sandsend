@@ -24,10 +24,11 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
             } else {
                 setUtxos([]); // Если результат не массив, устанавливаем пустой массив
             }
+            setLoading(false); // Останавливаем состояние загрузки
         })
         .catch(error => { // Обрабатываем ошибку запроса
             console.error('Error fetching UTXOs:', error); // Выводим ошибку в консоль
-            setLoading(false); // Останавливаем состояние загрузки
+            setLoading(false); // Останавливаем состояние загрузки в случае ошибки
         });
     }, [url, address]); // useCallback зависит от url и address
 
@@ -35,7 +36,6 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
         if (utxos.length === 0) return; // Если нет UTXO, выходим из функции
         const txidVoutArray = utxos.map(utxo => ["ord_output", [`${utxo.txid}:${utxo.vout}`]]); // Формируем массив параметров для запроса
         try {
-            setLoading(true); // Останавливаем состояние загрузки
             const response = await axios.post(url, { // Выполняем POST-запрос с помощью axios
                 jsonrpc: "2.0",
                 id: 1,
@@ -52,19 +52,19 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
                     if (res.result) {
                         // Создаем объект с ключами из res.result и utxos[index] на разных уровнях вложенности
                         details[`${utxos[index].txid}:${utxos[index].vout}`] = {
-                            ...utxos[index] ,
+                            ...utxos[index],
                             ...res.result
                         };
                     }
                 });
-                console.log(details); 
+                console.log(details);
                 setTransactionDetails(details); // Обновляем состояние деталей транзакций
                 localStorage.setItem('transactionDetails', JSON.stringify(details)); // Сохраняем детали транзакций в localStorage
-                setLoading(false); // Останавливаем состояние загрузки
             }
+            setLoading(false); // Останавливаем состояние загрузки
         } catch (error) { // Обрабатываем ошибку запроса
             console.error('Error fetching transaction details:', error); // Выводим ошибку в консоль
-            setLoading(false); // Останавливаем состояние загрузки
+            setLoading(false); // Останавливаем состояние загрузки в случае ошибки
         }
     }, [url]); // useCallback зависит от url
 
@@ -79,14 +79,14 @@ const useFetchUtxos = (url, address) => { // Определяем кастомн
                 } else {
                     fetchUtxos();
                 }
-            } catch (e) {
-                console.error('Error parsing stored transaction details', e); // Выводим ошибку в консоль
+            } catch (error) {
+                console.error('Error parsing stored transaction details:', error); // Выводим ошибку в консоль
+                fetchUtxos(); // Выполняем fetchUtxos, если парсинг не удался
             }
         } else {
-            fetchUtxos();
+            fetchUtxos(); // Выполняем fetchUtxos, если данных нет в localStorage
         }
-        
-    }, [fetchUtxos]); // useEffect зависит от ...
+    }, [fetchUtxos]); // useEffect зависит от fetchUtxos
 
     useEffect(() => { // useEffect для загрузки деталей транзакций при обновлении списка UTXO
         if (utxos.length > 0) {

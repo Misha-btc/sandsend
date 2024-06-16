@@ -1,10 +1,10 @@
 import React from 'react';
 
-const Button = ({ onClick, title }) => {
+const Button = ({ onClick, title, className }) => {
   return (
     <button
       onClick={onClick}
-      className='font-bold bg-black text-white p-2 hover:bg-zinc-900 relative z-10'
+      className={`font-bold ${className}`}
     >
       {title}
     </button>

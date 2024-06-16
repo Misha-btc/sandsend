@@ -1,39 +1,43 @@
 import React, { createContext, useState, useContext } from 'react';
 
 // Создаем контекст
-const ChosenUtxoContext = createContext();
+const ChosenUtxoContext = createContext(); // Создаем контекст для хранения выбранных UTXO
 
 // Провайдер для контекста
 export const ChoiceProvider = ({ children }) => {
+    // Инициализируем состояние choice из localStorage, если оно существует, иначе пустым объектом
     const [choice, setChoice] = useState(() => {
-        const storedChoice = localStorage.getItem('choice');
-        return storedChoice ? JSON.parse(storedChoice) : [];
+        const storedChoice = localStorage.getItem('choice'); // Получаем данные из localStorage
+        return storedChoice ? JSON.parse(storedChoice) : {}; // Парсим данные или возвращаем пустой объект
     });
 
-    const addToChoice = (utxo) => {
+    // Функция для добавления UTXO в выбор
+    const addToChoice = (utxo, detail) => {
         setChoice(prevChoice => {
-            const newChoice = [...prevChoice, utxo];
-            localStorage.setItem('choice', JSON.stringify(newChoice));
-            return newChoice;
+            const newChoice = { ...prevChoice, [utxo]: detail }; // Создаем новый объект с добавленным UTXO
+            localStorage.setItem('choice', JSON.stringify(newChoice)); // Сохраняем новый выбор в localStorage
+            return newChoice; // Возвращаем обновленный выбор
         });
     };
 
+    // Функция для удаления UTXO из выбора
     const removeFromChoice = (utxo) => {
         setChoice(prevChoice => {
-            const newChoice = prevChoice.filter(item => item.txid !== utxo.txid || item.vout !== utxo.vout);
-            localStorage.setItem('choice', JSON.stringify(newChoice));
-            return newChoice;
+            const { [utxo]: _, ...newChoice } = prevChoice; // Создаем новый объект без удаленного UTXO
+            localStorage.setItem('choice', JSON.stringify(newChoice)); // Сохраняем обновленный выбор в localStorage
+            return newChoice; // Возвращаем обновленный выбор
         });
     };
 
     return (
+        // Возвращаем провайдер контекста с переданными значениями состояния и функциями
         <ChosenUtxoContext.Provider value={{ choice, addToChoice, removeFromChoice }}>
-            {children}
+            {children} {/* Рендерим дочерние компоненты */}
         </ChosenUtxoContext.Provider>
     );
 };
 
 // Хук для использования контекста выбора
 export const useChoice = () => {
-    return useContext(ChosenUtxoContext);
+    return useContext(ChosenUtxoContext); // Используем useContext для доступа к значению контекста
 };
