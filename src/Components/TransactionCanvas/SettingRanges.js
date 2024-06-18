@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useChoice } from '../../Contexts/ChosenUtxo';
-import MultiRangeSlider from './MultiRangeSlider';
+import RangeInput from './RangeInput';
 
 function SettingRanges({ dataKey }) {
     const { choice } = useChoice();
@@ -34,7 +34,9 @@ function SettingRanges({ dataKey }) {
                             <div className="mb-2 text-center">
                                 {index+1}. {range.join(' - ')}
                             </div>
-                            <MultiRangeSlider min={range[0]} max={range[1]} />
+                            <RangeInput>
+                                {range}
+                            </RangeInput>
                         </div>
                     ))}
                 </div>

@@ -9,7 +9,7 @@ const InputElement = ({ utxoKey }) => { // Деструктурируем utxoKe
 
     return (
         <>
-           <Button onClick={() => setShowUtxo(!showUtxo)} className='rounded-xl bg-black text-white p-3 w-32 h-12 shadow-md' title={`${utxoKey.slice(0, 3)}...${utxoKey.slice(-6)}`} /> {/* Передаем utxoKey как title */}
+           <Button onClick={() => setShowUtxo(!showUtxo)} className='rounded-xl hover:bg-zinc-900 bg-black text-white p-3 w-32 h-12 shadow-md' title={`${utxoKey.slice(0, 3)}...${utxoKey.slice(-6)}`} /> {/* Передаем utxoKey как title */}
            <Modal show={showUtxo} onClose={() => setShowUtxo(false)}>
             <ModalHeader title='Sat Ranges'/>
             <SettingRanges dataKey={utxoKey}/>

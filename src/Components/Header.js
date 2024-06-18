@@ -3,7 +3,7 @@ import Button from './Button';
 
 function Header() {
     return (
-        <header className="bg-black text-white font-bold p-3 fixed left-0 right-0 w-full z-10">
+        <header className="bg-black text-white font-bold p-3 fixed left-0 top-0 right-0 w-full z-10">
             <div className='flex justify-between items-center'>
                 <div className='w-32'></div> {/* Пустой элемент для центровки */}
                 <span className='italic text-3xl text-center'>
