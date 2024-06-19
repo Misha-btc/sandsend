@@ -32,7 +32,7 @@ function SettingRanges({ dataKey }) {
                     {data.sat_ranges.map((range, index) => (
                         <div key={index} className="mb-4 w-full flex flex-col items-center"> {/* Установка ширины и отступов */}
                             <div className="mb-2 text-center">
-                                {index+1}. {range.join(' - ')}
+                                {index+1}. {range.join(' - ')} {`(${range[1]-range[0]} sats)`}
                             </div>
                             <RangeInput>
                                 {range}
