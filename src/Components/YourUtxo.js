@@ -1,6 +1,8 @@
 import React from 'react';
 import useFetchUtxos from '../Hooks/useFetchUtxos'; // Импортируем кастомный хук для получения UTXO
 import { useChoice } from '../Contexts/ChosenUtxo'; // Импортируем хук для использования контекста выбора UTXO
+import useConnectWallet from '../Hooks/useConnectWallet';
+import AddressButton from './AddressButton';
 
 function YourUtxo() {
     // URL и адрес для получения данных UTXO
@@ -30,11 +32,11 @@ function YourUtxo() {
     return (
         <div>
             {/* Заголовок */}
-            <div className='flex items-center border-b p-2 bg-black text-white sticky top-0 z-10 font-black text-xl'>
-                <button onClick={fetchUtxos} className="absolute text-xs">refresh</button> {/* Кнопка обновления */}
-                <div className='w-full text-center'>my UTXOs</div> {/* Заголовок по центру */}
-            </div>
-
+        <div className='flex items-center border-b p-2 bg-black text-white sticky top-0 z-10 font-black text-xl'>
+            <button onClick={fetchUtxos} className="absolute text-xs">refresh</button> {/* Кнопка обновления */}
+            <div className='w-full text-center'>my UTXOs</div> {/* Заголовок по центру */}
+            <AddressButton/>
+        </div>
             {/* Список UTXO */}
             <div className="">
                 {loading ? (

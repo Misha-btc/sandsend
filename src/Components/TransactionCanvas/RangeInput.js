@@ -17,7 +17,6 @@ export function RangeInput({ children }) {
 
     if (totalRange > 330) {
       const tr2MaxRanges = Math.floor(totalRange / 330);
-      console.log(tr2MaxRanges)
 
       if (Number.isInteger(totalRange / 330)) {
         limit = tr2MaxRanges + 1;
