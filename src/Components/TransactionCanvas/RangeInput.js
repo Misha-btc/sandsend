@@ -1,34 +1,71 @@
 import React, { useState, useEffect } from "react";
 
-export function RangeInput({ children }) {
-  // Извлекаем минимальные и максимальные значения из children
+// Компонент для управления диапазонами и адресами
+export function RangeInput({ dataKey, children, rangeIndex }) {
+  // Получаем минимальное и максимальное допустимые значения из пропсов children
   const minAllowed = children[0];
   const maxAllowed = children[1];
-  
-  // Инициализация состояния 'ranges', начальное состояние - пустой массив
-  const [ranges, setRanges] = useState([]);
-  const [warning, setWarning] = useState(''); // Состояние для хранения предупреждений
-  const [tr2RangeLimit, setTr2RangeLimit] = useState(0); // Состояние для хранения лимита диапазонов
 
+  // Инициализируем диапазон с начальными значениями
+  const initialRange = [{ min: minAllowed, max: '', sats: '', address: '' }];
+
+  // Функция для получения начального состояния из localStorage
+  const initialRanges = () => {
+    // Получаем данные из localStorage
+    const savedData = localStorage.getItem('myData');
+    const parsedData = savedData ? JSON.parse(savedData) : {};
+
+    // Если данных для текущего dataKey нет, создаем пустой объект
+    if (!parsedData[dataKey]) {
+      parsedData[dataKey] = {};
+    }
+
+    // Если данных для текущего rangeIndex нет, создаем начальный диапазон
+    if (!parsedData[dataKey][rangeIndex]) {
+      parsedData[dataKey][rangeIndex] = initialRange;
+    }
+
+    // Возвращаем данные для текущего rangeIndex
+    return parsedData[dataKey][rangeIndex];
+  };
+
+  // Инициализируем состояние ranges с использованием функции initialRanges
+  const [ranges, setRanges] = useState(initialRanges);
+  const [warning, setWarning] = useState(''); // Состояние для предупреждений
+  const [tr2RangeLimit, setTr2RangeLimit] = useState(0); // Лимит количества диапазонов
+
+  // Сохранение данных в localStorage при изменении ranges, dataKey или rangeIndex
   useEffect(() => {
-    // Вычисление общего диапазона
+    const updatedData = JSON.parse(localStorage.getItem('myData')) || {};
+
+    // Если данных для текущего dataKey нет, создаем пустой объект
+    if (!updatedData[dataKey]) {
+      updatedData[dataKey] = {};
+    }
+
+    // Обновляем данные для текущего rangeIndex
+    updatedData[dataKey][rangeIndex] = ranges;
+    localStorage.setItem('myData', JSON.stringify(updatedData));
+    console.log('Data saved to localStorage:', updatedData);
+  }, [ranges, dataKey, rangeIndex]);
+
+  // Вычисление лимита количества диапазонов в зависимости от общего диапазона
+  useEffect(() => {
     const totalRange = maxAllowed - minAllowed;
     let limit = 0;
 
     if (totalRange > 330) {
       const tr2MaxRanges = Math.floor(totalRange / 330);
-
       if (Number.isInteger(totalRange / 330)) {
         limit = tr2MaxRanges + 1;
       } else {
-        const satsRemainder = totalRange / 330 % 1 * 330;
+        const satsRemainder = (totalRange / 330) % 1 * 330;
         if (satsRemainder === 1) {
           limit = tr2MaxRanges + 1;
         } else if (satsRemainder >= 2) {
           limit = tr2MaxRanges + 2;
         }
       }
-      // Использовать для обработки соответствия другим адресам
     } else {
       if (totalRange === 1) {
         limit = 1;
@@ -37,158 +74,157 @@ export function RangeInput({ children }) {
       }
     }
 
-    setTr2RangeLimit(limit); // Установка лимита диапазонов
+    setTr2RangeLimit(limit);
   }, [minAllowed, maxAllowed]);
 
-  // Обработчик изменения максимального значения
-// Обработчик изменения максимального значения
+  // Обработчик изменения максимального значения диапазона
   const handleMaxChange = (index) => (event) => {
-    const { value } = event.target; // Получение значения из события
-    const intValue = parseInt(value, 10); // Преобразование значения в целое число
+    const { value } = event.target;
+    const intValue = parseInt(value, 10);
+
+    // Проверка на корректность значения
     if (value === '' || (intValue > ranges[index].min && intValue <= maxAllowed)) {
-      setWarning(''); // Убираем предупреждение, если значение корректное
+      setWarning(''); // Сбрасываем предупреждение
       setRanges((prevRanges) => {
-        const newRanges = [...prevRanges]; // Копируем текущие диапазоны
-        newRanges[index].max = value === '' ? '' : intValue; // Обновляем максимальное значение
-        if (index < newRanges.length - 1) {
-          newRanges[index + 1].min = intValue; // Обновляем min следующего диапазона
+        const newRanges = [...prevRanges];
+        if (newRanges[index]) {
+          newRanges[index].max = value === '' ? '' : intValue;
+          if (index < newRanges.length - 1) {
+            newRanges[index + 1].min = intValue;
+          }
         }
-        return newRanges; // Возвращаем обновленные диапазоны
+        return newRanges;
       });
     }
   };
 
-  // Обработчик покидания поля ввода
+  // Обработчик выхода из поля ввода для проверки значения
   const handleBlur = (value, index) => {
     if (value !== '' && (value <= ranges[index].min || value > maxAllowed)) {
-      setWarning(`Value must be between ${ranges[index].min} and ${maxAllowed}`); // Устанавливаем предупреждение, если значение некорректное
+      setWarning(`Значение должно быть между ${ranges[index].min} и ${maxAllowed}`);
     } else {
-      setWarning(''); // Убираем предупреждение
+      setWarning('');
     }
   };
 
-  // Обработчик изменения разницы между min и max
+  // Обработчик изменения разницы между min и max значениями диапазона
   const handleDifferenceChange = (index) => (event) => {
-    const { value } = event.target; // Получение значения из события
-    const intValue = parseInt(value, 10); // Преобразование значения в целое число
-  
+    const { value } = event.target;
+    const intValue = parseInt(value, 10);
+
     if (value === '' || (intValue >= 0 && (ranges[index].min + intValue) <= maxAllowed)) {
-      setWarning(''); // Убираем предупреждение, если значение корректное
+      setWarning('');
     } else {
-      setWarning(`Difference must be non-negative and max value must be less than or equal to ${maxAllowed}`); // Устанавливаем предупреждение
+      setWarning(`Разница должна быть неотрицательной, и максимальное значение должно быть меньше или равно ${maxAllowed}`);
     }
-  
+
     setRanges((prevRanges) => {
-      const newRanges = [...prevRanges]; // Копируем текущие диапазоны
-      newRanges[index].max = value === '' ? '' : ranges[index].min + intValue; // Обновляем максимальное значение
-  
-      // Обновляем min следующего диапазона
-      if (index < newRanges.length - 1) {
-        newRanges[index + 1].min = newRanges[index].max;
+      const newRanges = [...prevRanges];
+      if (newRanges[index]) {
+        newRanges[index].max = value === '' ? '' : ranges[index].min + intValue;
+        newRanges[index].sats = value;
+        if (index < newRanges.length - 1) {
+          newRanges[index + 1].min = newRanges[index].max;
+        }
       }
-  
-      return newRanges; // Возвращаем обновленные диапазоны
+      return newRanges;
     });
   };
 
+  // Обработчик изменения адреса
   const handleAddressChange = (index) => (event) => {
     const { value } = event.target;
     setRanges((prevRanges) => {
       const newRanges = [...prevRanges];
-      newRanges[index].address = value;
+      if (newRanges[index]) {
+        newRanges[index].address = value;
+      }
       return newRanges;
     });
   };
 
   // Функция для добавления нового диапазона
   const addRange = () => {
-    const lastRange = ranges[ranges.length - 1]; // Получаем последний диапазон
-   
-    if (ranges.length === 0){
-      const newMin = minAllowed // Устанавливаем новое минимальное значение
-      setRanges((prevRanges) => [...prevRanges, { min: newMin, max: '' }]); // Добавляем новый диапазон
-      setWarning(''); // Убираем предупреждение
-    } else {
-      if (ranges.length < tr2RangeLimit && (ranges.length === 0 || (lastRange && lastRange.max !== '' && (lastRange.max > lastRange.min && lastRange.max <= maxAllowed)))){
-        const rangeDif = lastRange.max - lastRange.min
-        if (ranges.length >= 1 && rangeDif >= 330){
-          const newMin = lastRange.max; // Устанавливаем новое минимальное значение
-          setRanges((prevRanges) => [...prevRanges, { min: newMin, max: '' }]); // Добавляем новый диапазон
-          setWarning('');
-        } else if (ranges.length > 1 && rangeDif <= 330) {
-          setWarning(`Cannot add range. Ensure the last range's max value is between ${minAllowed + 1} and ${maxAllowed}, and the total number of ranges does not exceed ${tr2RangeLimit}`);
-        }
-        else if (ranges.length <= 1) {
-          const newMin = ranges.length === 0 ? minAllowed : lastRange.max; // Устанавливаем новое минимальное значение
-          setRanges((prevRanges) => [...prevRanges, { min: newMin, max: '' }]); // Добавляем новый диапазон
-          setWarning(''); // Убираем предупреждение
-        }
+    const lastRange = ranges.length > 0 ? ranges[ranges.length - 1] : null;
+
+    if (lastRange && lastRange.max !== '' && lastRange.max > lastRange.min && lastRange.max <= maxAllowed) {
+      if (ranges.length < tr2RangeLimit) {
+        const newMin = lastRange.max;
+        setRanges((prevRanges) => {
+          const newRanges = [...prevRanges, { min: newMin, max: '', sats: '', address: '' }];
+          return newRanges;
+        });
+        setWarning('');
       } else {
-        setWarning(`Cannot add range. Ensure the last range's max value is between ${minAllowed + 1} and ${maxAllowed}, and the total number of ranges does not exceed ${tr2RangeLimit}`); // Устанавливаем предупреждение
+        setWarning(`Невозможно добавить диапазон. Максимальное количество диапазонов: ${tr2RangeLimit}`);
       }
+    } else {
+      setWarning(`Невозможно добавить диапазон. Убедитесь, что максимальное значение последнего диапазона между ${minAllowed + 1} и ${maxAllowed}`);
     }
   };
 
-  // Функция для удаления диапазона по индексу
+  // Функция для удаления диапазона
   const removeRange = (index) => {
     setRanges((prevRanges) => {
-      const newRanges = prevRanges.filter((_, i) => i !== index); // Удаляем диапазон из массива
+      const newRanges = prevRanges.filter((_, i) => i !== index);
       if (index < prevRanges.length - 1 && newRanges.length > 0) {
-        newRanges[index].min = prevRanges[index].min; // Обновляем min следующего диапазона, если удаляемый диапазон не последний
+        newRanges[index].min = prevRanges[index].min;
       }
       return newRanges;
     });
-    setWarning(''); // Убираем предупреждение после удаления диапазона
+    setWarning('');
   };
 
   return (
     <div>
-      {ranges.map((range, index) => (
+      {ranges && ranges.map((range, index) => (
         <div key={index} className="mb-4">
           <label>
-            sat range {index + 1}:
-            <span className="border-2 py-1 border-stone-500 rounded-xl mx-1 flex-grow text-stone-600">{range.min}</span>
+            Диапазон сатоши {index + 1}:
+            <span className="border-2 py-1 border-stone-500 rounded-xl mx-1 flex-grow text-stone-600">
+              {range.min}
+            </span>
             -
             <input
               className="border-2 border-black rounded-xl mx-1 flex-grow"
               type="number"
               min={minAllowed}
               max={maxAllowed}
-              value={range.max} // Привязка значения к состоянию
-              onChange={handleMaxChange(index)} // Установка обработчика изменения
-              onBlur={() => handleBlur(range.max, index)} // Установка обработчика покидания поля ввода
+              value={range.max}
+              onChange={handleMaxChange(index)}
+              onBlur={() => handleBlur(range.max, index)}
             />
             <input
               className="border-2 border-black rounded-xl mx-1 flex-grow"
               type="number"
-              placeholder="sats"
-              value={range.max === '' ? '' : range.max - range.min} // Привязка значения разницы к состоянию
-              onChange={handleDifferenceChange(index)} // Установка обработчика изменения разницы
+              placeholder="сатоши"
+              value={range.max === '' ? '' : range.max - range.min}
+              onChange={handleDifferenceChange(index)}
             />
           </label>
           <button
-            onClick={() => removeRange(index)} // Установка обработчика для удаления диапазона
+            onClick={() => removeRange(index)}
             className="ml-2 px-2 py-1 bg-red-800 text-white rounded-lg"
           >
-            Remove
+            Удалить
           </button>
           <input
-              className="border-2 border-black rounded-xl mx-1 flex-grow"
-              type="text"
-              placeholder="Enter address"
-              value={range.address || ''}
-              onChange={handleAddressChange(index)}
-            />
+            className="border-2 border-black rounded-xl mx-1 flex-grow"
+            type="text"
+            placeholder="Введите адрес"
+            value={range.address || ''}
+            onChange={handleAddressChange(index)}
+          />
         </div>
       ))}
       <button
-        onClick={addRange} // Установка обработчика для добавления нового диапазона
+        onClick={addRange}
         className="mt-2 px-2 py-1 bg-black text-white rounded-lg"
       >
-        Add range
+        Добавить диапазон
       </button>
-      {warning && <div className="text-red-500">{warning}</div>} {/* Отображение предупреждения, если оно есть */}
-      <div>Max ranges allowed: {tr2RangeLimit}</div> {/* Отображение максимального количества диапазонов */}
+      {warning && <div className="text-red-500">{warning}</div>}
+      <div>Максимальное количество диапазонов: {tr2RangeLimit}</div>
     </div>
   );
 }

@@ -10,7 +10,7 @@ function Header() {
       <div className='flex justify-between items-center'>
         <div className='w-32'></div> {/* Пустой элемент для центровки */}
         <span className='italic text-3xl text-center'>
-          satributiq
+          SANDSENDサンド
         </span>
         <Button onClick={connectWallet} title='connect' className='w-32 p-1 text-white text-center rounded hover:bg-zinc-900'/>
       </div>

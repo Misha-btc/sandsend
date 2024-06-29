@@ -1,14 +1,16 @@
 import React from 'react';
-import bitcoinLogo from '../icons/bitcoin-logo.webp'; // Убедитесь, что путь к изображению правильный
+import bitcoinLogo from '../icons/bitcoin.svg.webp'; // Убедитесь, что путь к изображению правильный
+import ordinalsLogo from '../icons/ordinals1.png'; // Убедитесь, что путь к изображению правильный
 
-const AddressButton = ({ keyProp = 'ordinals', onClick }) => {
+const AddressButton = ({ addressType, onClick }) => {
+  const logo = addressType === 'ordinals' ? ordinalsLogo : bitcoinLogo;
   return (
     <button 
-      key={keyProp} 
+      key={addressType} 
       onClick={onClick} 
       style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}
     >
-      <img src={bitcoinLogo} alt="Bitcoin Logo" style={{ width: '35px', height: '35px' }} />
+      <img src={logo} alt={`${addressType} Logo`} style={{ width: '35px', height: '35px' }} />
     </button>
   );
 }

@@ -19,7 +19,7 @@ function SettingRanges({ dataKey }) {
         <div className="flex flex-col items-center justify-center"> {/* Центрирование содержимого */}
             <div className='w-full h-full p-5 flex flex-col items-center m-2'>
                 <div className="mb-2">
-                    <strong>UTXO:</strong> {data.txid}:{data.vout}
+                    <strong>UTXO:</strong> {dataKey}:{dataKey}
                 </div>
                 <div className="mb-2">
                     <strong>Value:</strong> {data.value} sats
@@ -34,7 +34,7 @@ function SettingRanges({ dataKey }) {
                             <div className="mb-2 text-center">
                                 {index+1}. {range.join(' - ')} {`(${range[1]-range[0]} sats)`}
                             </div>
-                            <RangeInput>
+                            <RangeInput dataKey={dataKey} rangeIndex={index}>
                                 {range}
                             </RangeInput>
                         </div>

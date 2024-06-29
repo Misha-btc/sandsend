@@ -14,7 +14,6 @@ const useConnectWallet = () => {
 
       // Выполняем запрос к кошельку с использованием библиотеки sats-connect
       const response = await request('getAccounts', options);
-      console.log("getAccounts ~ response:", response); // Логируем ответ для отладки
 
       // Проверяем статус ответа
       if (response.status === 'success') {
@@ -30,10 +29,6 @@ const useConnectWallet = () => {
         const ordinalsAddressItem = response.result.find(
           (address) => address.purpose === AddressPurpose.Ordinals
         );
-
-        // Логируем найденные адреса для отладки
-        console.log("Payment Address:", paymentAddressItem);
-        console.log("Ordinals Address:", ordinalsAddressItem);
 
         // Сохраняем найденные адреса в объекте walletAddresses
         if (paymentAddressItem) {

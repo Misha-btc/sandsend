@@ -48,7 +48,6 @@ const SimpleSlider = ({ min, max, points = [], onChange, onAddPoint }) => {
   // Обработчик нажатия указателя
   const handlePointerDown = useCallback((event, index) => {
     isDragging.current = true;
-    console.log("Pointer Down");
     document.body.classList.add('dragging');
     const handlePointerMoveBound = (event) => handlePointerMove(event, index);
     const handlePointerUp = () => {
