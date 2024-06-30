@@ -30,8 +30,20 @@ function YourUtxo() {
     const handleUtxoClick = (key, detail) => {
         if (isChosen(key)) {
             removeFromChoice(key); // Удаляем UTXO из выбора, если он уже выбран
+            removeFromLocalStorage(key);
         } else {
             addToChoice(key, detail); // Добавляем UTXO в выбор, если он не выбран
+        }
+    };
+    const removeFromLocalStorage = (key) => {
+        const savedData = localStorage.getItem('myData');
+        if (savedData) {
+            const parsedData = JSON.parse(savedData);
+            if (parsedData[key]) {
+                delete parsedData[key];
+                localStorage.setItem('myData', JSON.stringify(parsedData));
+                console.log(`Data for key ${key} removed from localStorage`);
+            }
         }
     };
     const filteredTransactionDetails = transactionDetails[addressPurpose] || {};

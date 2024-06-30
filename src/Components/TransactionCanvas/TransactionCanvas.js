@@ -1,5 +1,6 @@
 import React from 'react';
 import SelectedUtxos from './SelectedUtxos';
+import OutputsSpace from './OutputsSpace';
 
 function TransactionCanvas() {
     return (
@@ -8,7 +9,7 @@ function TransactionCanvas() {
                 <SelectedUtxos />
             </div>
             <div className="w-1/2 h-full bg-neutral-900">
-                
+                <OutputsSpace />
             </div>
         </div>
     );

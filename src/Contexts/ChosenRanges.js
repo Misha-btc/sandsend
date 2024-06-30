@@ -6,22 +6,22 @@ const ChosenRangeContext = createContext();
 // Провайдер для контекста
 export const ChoiceRangeProvider = ({ children }) => {
     const [choiceRange, setChoiceRange] = useState(() => {
-        const storedChoiceRange = localStorage.getItem('choice');
-        return storedChoiceRange ? JSON.parse(storedChoiceRange) : [];
+        const storedChoiceRange = localStorage.getItem('myData');
+        return storedChoiceRange ? JSON.parse(storedChoiceRange) : {};
     });
 
-    const addToChoiceRange = (utxo) => {
+    const addToChoiceRange = (utxo, ranges) => {
         setChoiceRange(prevChoice => {
             const newChoice = [...prevChoice, utxo];
-            localStorage.setItem('choice', JSON.stringify(newChoice));
+            localStorage.setItem('myData', JSON.stringify(newChoice));
             return newChoice;
         });
     };
 
     const removeFromChoiceRange = (utxo) => {
         setChoiceRange(prevChoice => {
-            const newChoice = prevChoice.filter(item => item.txid !== utxo.txid || item.vout !== utxo.vout);
-            localStorage.setItem('choice', JSON.stringify(newChoice));
+            const { [utxo]: _, ...newChoice } = prevChoice;
+            localStorage.setItem('myData', JSON.stringify(newChoice));
             return newChoice;
         });
     };
@@ -34,6 +34,6 @@ export const ChoiceRangeProvider = ({ children }) => {
 };
 
 // Хук для использования контекста выбора
-export const useChoice = () => {
+export const useRange= () => {
     return useContext(ChosenRangeContext);
 };

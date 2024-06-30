@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
 // Создаем контекст
 const ChosenUtxoContext = createContext(); // Создаем контекст для хранения выбранных UTXO
@@ -28,6 +28,9 @@ export const ChoiceProvider = ({ children }) => {
             return newChoice; // Возвращаем обновленный выбор
         });
     };
+    useEffect(() => {
+        console.log('Current choice:', choice); // Лог текущего состояния choice
+    }, [choice]);
 
     return (
         // Возвращаем провайдер контекста с переданными значениями состояния и функциями
