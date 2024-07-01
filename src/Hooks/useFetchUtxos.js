@@ -44,6 +44,7 @@ const useFetchUtxos = (url) => {
                     // Если ответ содержит массив результатов, сохраняем его
                     if (response.data && Array.isArray(response.data.result)) {
                         newUtxos[address] = response.data.result;
+                        console.log('newUtxos',newUtxos)
                     } else {
                         newUtxos[address] = []; // Иначе устанавливаем пустой массив
                     }
@@ -59,11 +60,10 @@ const useFetchUtxos = (url) => {
             });
     }, [url]); // Зависимость от url
 
-    // Функция для получения деталей транзакций по UTXO
     const fetchTransactionDetails = useCallback(async (utxos) => {
         // Если нет UTXO, выходим из функции
         if (!utxos || Object.keys(utxos).length === 0) return;
-
+    
         const txidVoutArray = []; // Массив для хранения запросов деталей транзакций
         // Проходим по всем UTXO и формируем массив запросов
         Object.values(utxos).forEach(utxoList => {
@@ -71,7 +71,7 @@ const useFetchUtxos = (url) => {
                 txidVoutArray.push(["ord_output", [`${utxo.txid}:${utxo.vout}`]]);
             });
         });
-
+    
         try {
             // Отправляем запрос на получение деталей транзакций
             const response = await axios.post(url, {
@@ -84,12 +84,12 @@ const useFetchUtxos = (url) => {
                     'Content-Type': 'application/json' // Устанавливаем тип контента
                 }
             });
-
+    
             // Если ответ содержит массив результатов
             if (response.data && Array.isArray(response.data.result)) {
                 const newTransactionDetails = { ordinals: {}, payment: {} }; // Создаем объект для новых деталей транзакций
                 const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {}; // Получаем список адресов из localStorage
-
+    
                 // Проходим по результатам запросов
                 response.data.result.forEach((res, index) => {
                     if (res.result) {
@@ -103,12 +103,16 @@ const useFetchUtxos = (url) => {
                         const addressPurpose = Object.values(storedAddresses).find(addr => addr.address === address)?.purpose;
                         if (addressPurpose) {
                             // Сохраняем результат в соответствующую цель
-                            newTransactionDetails[addressPurpose][`${txid}:${vout}`] = res.result;
+                            newTransactionDetails[addressPurpose][`${txid}:${vout}`] = {
+                                ...res.result,
+                                ...utxos[address].find(utxo => utxo.txid === txid && utxo.vout === parseInt(vout))
+                            };
                         }
                     }
                 });
                 setTransactionDetails(newTransactionDetails); // Обновляем состояние деталей транзакций
                 // Сохраняем детали транзакций в localStorage
+                console.log('transDetail', newTransactionDetails);
                 localStorage.setItem('transactionDetails', JSON.stringify(newTransactionDetails));
                 // Логируем детали транзакций для отладки
             }
