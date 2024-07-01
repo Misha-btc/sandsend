@@ -1,53 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import OutputElement from './OutputElement'
+import React from 'react';
+import OutputElement from './OutputElement';
+import { useChoice } from '../../Contexts/ChosenUtxo';
 
 const OutputsSpace = () => {
-  const [addresses, setAddresses] = useState([]);
+  const { choice } = useChoice();
 
-  useEffect(() => {
-    const extractAddressesFromLocalStorage = () => {
-      // Извлекаем данные из localStorage
-      const savedData = localStorage.getItem('myData');
-      if (!savedData) {
-        console.log('No data found in localStorage');
-        return [];
+  // Функция для получения всех диапазонов из choice
+  const getAllRanges = () => {
+    return Object.keys(choice).reduce((acc, key) => {
+      const newRanges = choice[key].new_ranges;
+      if (newRanges) {
+        Object.values(newRanges).forEach(rangeArray => {
+          rangeArray.forEach(range => {
+            acc.push({ ...range, key });
+          });
+        });
       }
+      return acc;
+    }, []);
+  };
 
-      // Парсим данные
-      const parsedData = JSON.parse(savedData);
-      const addresses = [];
-
-      // Перебираем ключи верхнего уровня в объекте parsedData
-      for (const dataKey in parsedData) {
-        if (parsedData.hasOwnProperty(dataKey)) {
-          const ranges = parsedData[dataKey];
-
-          // Перебираем вложенные ключи (rangeIndex)
-          for (const rangeIndex in ranges) {
-            if (ranges.hasOwnProperty(rangeIndex)) {
-              const rangeArray = ranges[rangeIndex];
-
-              // Перебираем массив объектов внутри каждого rangeIndex
-              rangeArray.forEach(range => {
-                addresses.push(range.address);
-              });
-            }
-          }
-        }
-      }
-
-      return addresses;
-    };
-
-    // Извлекаем адреса и устанавливаем состояние
-    setAddresses(extractAddressesFromLocalStorage());
-  }, []);
+  const ranges = getAllRanges();
 
   return (
     <div className='w-full h-full p-10 flex flex-col min-h-screen m-6 items-center'>
-      {addresses.map((address, index) => (
+      {ranges.map((range, index) => (
         <div key={index} className="mb-2 w-32 h-12 rounded-xl">
-          <OutputElement address={address}/>
+          <OutputElement range={range} />
         </div>
       ))}
     </div>

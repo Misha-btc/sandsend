@@ -1,55 +1,46 @@
 import React, { useState, useEffect } from "react";
+import { useChoice } from '../../Contexts/ChosenUtxo';
 
 // Компонент для управления диапазонами и адресами
 export function RangeInput({ dataKey, children, rangeIndex }) {
-  // Получаем минимальное и максимальное допустимые значения из пропсов children
   const minAllowed = children[0];
   const maxAllowed = children[1];
 
-  // Инициализируем диапазон с начальными значениями
   const initialRange = [{ min: minAllowed, max: '', sats: '', address: '' }];
 
-  // Функция для получения начального состояния из localStorage
+  const { addToRanges } = useChoice();
+
   const initialRanges = () => {
-    // Получаем данные из localStorage
     const savedData = localStorage.getItem('myData');
     const parsedData = savedData ? JSON.parse(savedData) : {};
 
-    // Если данных для текущего dataKey нет, создаем пустой объект
     if (!parsedData[dataKey]) {
       parsedData[dataKey] = {};
     }
 
-    // Если данных для текущего rangeIndex нет, создаем начальный диапазон
     if (!parsedData[dataKey][rangeIndex]) {
       parsedData[dataKey][rangeIndex] = initialRange;
     }
 
-    // Возвращаем данные для текущего rangeIndex
     return parsedData[dataKey][rangeIndex];
   };
 
-  // Инициализируем состояние ranges с использованием функции initialRanges
   const [ranges, setRanges] = useState(initialRanges);
-  const [warning, setWarning] = useState(''); // Состояние для предупреждений
-  const [tr2RangeLimit, setTr2RangeLimit] = useState(0); // Лимит количества диапазонов
+  const [warning, setWarning] = useState('');
+  const [tr2RangeLimit, setTr2RangeLimit] = useState(0);
 
-  // Сохранение данных в localStorage при изменении ranges, dataKey или rangeIndex
   useEffect(() => {
     const updatedData = JSON.parse(localStorage.getItem('myData')) || {};
 
-    // Если данных для текущего dataKey нет, создаем пустой объект
     if (!updatedData[dataKey]) {
       updatedData[dataKey] = {};
     }
 
-    // Обновляем данные для текущего rangeIndex
     updatedData[dataKey][rangeIndex] = ranges;
     localStorage.setItem('myData', JSON.stringify(updatedData));
     console.log('Data saved to localStorage:', updatedData);
   }, [ranges, dataKey, rangeIndex]);
 
-  // Вычисление лимита количества диапазонов в зависимости от общего диапазона
   useEffect(() => {
     const totalRange = maxAllowed - minAllowed;
     let limit = 0;
@@ -77,18 +68,17 @@ export function RangeInput({ dataKey, children, rangeIndex }) {
     setTr2RangeLimit(limit);
   }, [minAllowed, maxAllowed]);
 
-  // Обработчик изменения максимального значения диапазона
   const handleMaxChange = (index) => (event) => {
     const { value } = event.target;
     const intValue = parseInt(value, 10);
 
-    // Проверка на корректность значения
     if (value === '' || (intValue > ranges[index].min && intValue <= maxAllowed)) {
-      setWarning(''); // Сбрасываем предупреждение
+      setWarning('');
       setRanges((prevRanges) => {
         const newRanges = [...prevRanges];
         if (newRanges[index]) {
           newRanges[index].max = value === '' ? '' : intValue;
+          newRanges[index].sats = value === '' ? '' : intValue - newRanges[index].min;
           if (index < newRanges.length - 1) {
             newRanges[index + 1].min = intValue;
           }
@@ -98,7 +88,6 @@ export function RangeInput({ dataKey, children, rangeIndex }) {
     }
   };
 
-  // Обработчик выхода из поля ввода для проверки значения
   const handleBlur = (value, index) => {
     if (value !== '' && (value <= ranges[index].min || value > maxAllowed)) {
       setWarning(`Значение должно быть между ${ranges[index].min} и ${maxAllowed}`);
@@ -107,7 +96,6 @@ export function RangeInput({ dataKey, children, rangeIndex }) {
     }
   };
 
-  // Обработчик изменения разницы между min и max значениями диапазона
   const handleDifferenceChange = (index) => (event) => {
     const { value } = event.target;
     const intValue = parseInt(value, 10);
@@ -131,7 +119,6 @@ export function RangeInput({ dataKey, children, rangeIndex }) {
     });
   };
 
-  // Обработчик изменения адреса
   const handleAddressChange = (index) => (event) => {
     const { value } = event.target;
     setRanges((prevRanges) => {
@@ -143,7 +130,6 @@ export function RangeInput({ dataKey, children, rangeIndex }) {
     });
   };
 
-  // Функция для добавления нового диапазона
   const addRange = () => {
     const lastRange = ranges.length > 0 ? ranges[ranges.length - 1] : null;
 
@@ -163,17 +149,45 @@ export function RangeInput({ dataKey, children, rangeIndex }) {
     }
   };
 
-  // Функция для удаления диапазона
   const removeRange = (index) => {
     setRanges((prevRanges) => {
+      // Удаляем диапазон по индексу
       const newRanges = prevRanges.filter((_, i) => i !== index);
+  
+      // Если удаленный диапазон не последний и есть оставшиеся диапазоны
       if (index < prevRanges.length - 1 && newRanges.length > 0) {
+        // Устанавливаем min значение следующего диапазона равным min значению удаленного диапазона
         newRanges[index].min = prevRanges[index].min;
       }
-      return newRanges;
+  
+      // Обновляем минимальные значения, максимальные значения и значения sats для оставшихся диапазонов
+      for (let i = index; i < newRanges.length; i++) {
+        if (i === 0) {
+          // Если это первый диапазон, устанавливаем его min значение равным minAllowed
+          newRanges[i].min = minAllowed;
+          newRanges[i].sats = newRanges[i].max - newRanges[i].min;
+        } else {
+          // Для всех остальных диапазонов устанавливаем min значение равным max значению предыдущего диапазона
+          newRanges[i].min = newRanges[i - 1].max;
+          newRanges[i].sats = newRanges[i].max - newRanges[i].min;
+        }
+      /*   if (i < newRanges.length - 1) {
+          // Для всех диапазонов, кроме последнего, устанавливаем max значение равным max значению следующего диапазона
+          newRanges[i].max = newRanges[i + 1].max || '';
+          // Обновляем значение sats как разницу между max и min значениями
+          newRanges[i].sats = newRanges[i].max - newRanges[i].min;
+        } */
+      }
+  
+      return newRanges; // Возвращаем обновленный массив диапазонов
     });
-    setWarning('');
+  
+    setWarning(''); // Сбрасываем предупреждение
   };
+
+  useEffect(() => {
+    addToRanges(dataKey, rangeIndex, ranges);
+  }, [ranges, dataKey, rangeIndex, addToRanges]);
 
   return (
     <div>

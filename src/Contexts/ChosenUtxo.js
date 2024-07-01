@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 
 // Создаем контекст
 const ChosenUtxoContext = createContext(); // Создаем контекст для хранения выбранных UTXO
@@ -25,16 +25,41 @@ export const ChoiceProvider = ({ children }) => {
         setChoice(prevChoice => {
             const { [utxo]: _, ...newChoice } = prevChoice; // Создаем новый объект без удаленного UTXO
             localStorage.setItem('choice', JSON.stringify(newChoice)); // Сохраняем обновленный выбор в localStorage
-            return newChoice; // Возвращаем обновленный выбор
+            return newChoice; // Возвращаем новый выбор
         });
     };
+
+    // Функция для добавления диапазона к UTXO
+    const addToRanges = useCallback((utxo, rangeIndex, ranges) => {
+        setChoice(prevChoice => {
+            const utxoDetail = prevChoice[utxo] || {};
+            const currentRanges = utxoDetail.new_ranges || {};
+
+            const newRanges = {
+                ...currentRanges,
+                [rangeIndex]: ranges
+            };
+
+            const newChoice = {
+                ...prevChoice,
+                [utxo]: {
+                    ...utxoDetail,
+                    new_ranges: newRanges
+                }
+            };
+
+            localStorage.setItem('choice', JSON.stringify(newChoice));
+            return newChoice;
+        });
+    }, []);
+
     useEffect(() => {
         console.log('Current choice:', choice); // Лог текущего состояния choice
     }, [choice]);
 
     return (
         // Возвращаем провайдер контекста с переданными значениями состояния и функциями
-        <ChosenUtxoContext.Provider value={{ choice, addToChoice, removeFromChoice }}>
+        <ChosenUtxoContext.Provider value={{ choice, addToChoice, removeFromChoice, addToRanges }}>
             {children} {/* Рендерим дочерние компоненты */}
         </ChosenUtxoContext.Provider>
     );

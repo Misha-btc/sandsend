@@ -39,9 +39,6 @@ const useConnectWallet = () => {
           walletAddresses[AddressPurpose.Ordinals] = ordinalsAddressItem;
         }
 
-        // Логируем итоговый объект walletAddresses
-        console.log("Обьект адресов:", walletAddresses);
-
         // Сохраняем объект walletAddresses в localStorage
         localStorage.setItem('walletAddresses', JSON.stringify(walletAddresses));
 

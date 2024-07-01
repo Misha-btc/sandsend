@@ -19,8 +19,6 @@ const useFetchUtxos = (url) => {
         // Извлекаем адреса из объектов в массив
         const addresses = Object.values(storedAddresses).map(addr => addr.address);
 
-        // Логируем объект из localStorage для отладки
-        console.log('Stored Addresses:', storedAddresses);
 
         // Создаем массив промисов для запросов UTXO по каждому адресу
         const fetchPromises = addresses.map(address =>
@@ -52,7 +50,6 @@ const useFetchUtxos = (url) => {
                 });
                 setUtxos(newUtxos); // Обновляем состояние UTXO
                 // Логируем новые UTXO для отладки
-                console.log('new utxos:', newUtxos);
                 setLoading(false); // Останавливаем состояние загрузки
             })
             .catch(error => {
@@ -114,7 +111,6 @@ const useFetchUtxos = (url) => {
                 // Сохраняем детали транзакций в localStorage
                 localStorage.setItem('transactionDetails', JSON.stringify(newTransactionDetails));
                 // Логируем детали транзакций для отладки
-                console.log('Transaction Details:', newTransactionDetails);
             }
             setLoading(false); // Останавливаем состояние загрузки
         } catch (error) {

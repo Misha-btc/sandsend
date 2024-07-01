@@ -1,15 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useChoice } from '../../Contexts/ChosenUtxo';
 import RangeInput from './RangeInput';
 
 function SettingRanges({ dataKey }) {
     const { choice } = useChoice();
     const data = choice[dataKey]; // Access the data using the provided key
-
-    useEffect(() => {
-        console.log('Переданный ключ:', dataKey);
-        console.log('Данные для ключа:', data);
-    }, [dataKey, data]);
 
     if (!data) {
         return <div>No data found for the provided key.</div>;

@@ -42,7 +42,6 @@ function YourUtxo() {
             if (parsedData[key]) {
                 delete parsedData[key];
                 localStorage.setItem('myData', JSON.stringify(parsedData));
-                console.log(`Data for key ${key} removed from localStorage`);
             }
         }
     };
