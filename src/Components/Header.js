@@ -1,6 +1,7 @@
 import React from 'react';
 import Button from './Button';
 import useConnectWallet from '../Hooks/useConnectWallet';
+import '../index.css'
 
 function Header() {
   const connectWallet = useConnectWallet();
@@ -12,7 +13,7 @@ function Header() {
         <span className='italic w-4/12 text-3xl text-center pl-20'>
           sandsend<span className='text-orange-600 text-lg align-top'>サンド</span>
         </span>
-        <Button onClick={connectWallet} title='connect' className='w-32 p-1 text-white text-center rounded hover:bg-zinc-900'/>
+        <Button onClick={connectWallet} title='connect' className='w-32 p-1 text-white text-center rounded hover:bg-zinc-900 hover:text-glow'/>
       </div>
     </header>
   );

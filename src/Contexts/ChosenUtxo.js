@@ -67,18 +67,18 @@ export const ChoiceProvider = ({ children }) => {
         setChoice(prevChoice => {
             const utxoDetail = prevChoice[key] || {};
             const currentRanges = utxoDetail.new_ranges || {};
-            const updatedRangeArray = currentRanges[rangeIndex]?.map((range, idx) => {
+            const updatedRangeArray = currentRanges[rangeIndex].map((range, idx) => {
                 if (idx === rangeArrayIndex) {
                     return { ...range, position };
                 }
                 return range;
-            }) || [];
-    
+            });
+
             const newRanges = {
                 ...currentRanges,
                 [rangeIndex]: updatedRangeArray
             };
-    
+
             const newChoice = {
                 ...prevChoice,
                 [key]: {
@@ -86,7 +86,7 @@ export const ChoiceProvider = ({ children }) => {
                     new_ranges: newRanges
                 }
             };
-    
+
             localStorage.setItem('choice', JSON.stringify(newChoice));
             return newChoice;
         });
