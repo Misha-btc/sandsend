@@ -8,9 +8,9 @@ import { ChoiceProvider } from './Contexts/ChosenUtxo';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <ChoiceProvider>
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
   </ChoiceProvider>
 );
 

@@ -39,10 +39,10 @@ const CreateTransaction = () => {
 
   return (
     <button
-      className='fixed text-white bg-green-800 p-2 bottom-10 right-4 hover:bg-green-700 z-10'
+      className='font-bold fixed w-38 m-8 p-1 text-white text-center rounded text-white bg-lime-700 p-2 bottom-10 right-4 hover:bg-lime-800 z-10'
       onClick={handleCreateTransaction}
     >
-      Create Transaction
+      create PSBT
     </button>
   );
 };

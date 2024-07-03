@@ -38,7 +38,7 @@ const Modal = ({ show, onClose, children }) => {
         item && (
           <animated.div
             style={style}
-            className='bg-zinc-700 fixed inset-0 flex justify-center items-top z-10 backdrop-blur-xl'
+            className='bg-zinc-700 fixed inset-0 flex justify-center items-top z-30 backdrop-blur-xl'
             onClick={onClose}
           />
         )
@@ -47,7 +47,7 @@ const Modal = ({ show, onClose, children }) => {
         item && (
           <animated.div
             style={style}
-            className='border-0.1 border-zinc-200 rounded-xl fixed inset-3px justify-center items-top bg-white z-10 shadow-3xl max-h-3/4 overflow-auto'
+            className='border-0.1 border-zinc-200 rounded-xl fixed inset-3px justify-center items-top bg-white z-30 shadow-3xl max-h-3/4 overflow-auto'
           >
             {children}
           </animated.div>

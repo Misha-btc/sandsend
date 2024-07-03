@@ -53,13 +53,53 @@ export const ChoiceProvider = ({ children }) => {
         });
     }, []);
 
+    const updatePosition = (key, position) => {
+        setChoice(prevChoice => ({
+            ...prevChoice,
+            [key]: {
+                ...prevChoice[key],
+                position
+            }
+        }));
+    };
+
+    const updateRangePosition = (key, rangeIndex, rangeArrayIndex, position) => {
+        setChoice(prevChoice => {
+            const utxoDetail = prevChoice[key] || {};
+            const currentRanges = utxoDetail.new_ranges || {};
+            const updatedRangeArray = currentRanges[rangeIndex]?.map((range, idx) => {
+                if (idx === rangeArrayIndex) {
+                    return { ...range, position };
+                }
+                return range;
+            }) || [];
+    
+            const newRanges = {
+                ...currentRanges,
+                [rangeIndex]: updatedRangeArray
+            };
+    
+            const newChoice = {
+                ...prevChoice,
+                [key]: {
+                    ...utxoDetail,
+                    new_ranges: newRanges
+                }
+            };
+    
+            localStorage.setItem('choice', JSON.stringify(newChoice));
+            return newChoice;
+        });
+    };
+
+
     useEffect(() => {
         console.log('Current choice:', choice); // Лог текущего состояния choice
     }, [choice]);
 
     return (
         // Возвращаем провайдер контекста с переданными значениями состояния и функциями
-        <ChosenUtxoContext.Provider value={{ choice, addToChoice, removeFromChoice, addToRanges }}>
+        <ChosenUtxoContext.Provider value={{ choice, addToChoice, removeFromChoice, addToRanges, updatePosition, updateRangePosition }}>
             {children} {/* Рендерим дочерние компоненты */}
         </ChosenUtxoContext.Provider>
     );

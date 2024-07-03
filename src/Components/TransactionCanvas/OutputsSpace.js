@@ -1,19 +1,22 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import OutputElement from './OutputElement';
 import { useChoice } from '../../Contexts/ChosenUtxo';
+import Lines from './Lines';
 
 const OutputsSpace = () => {
   const { choice } = useChoice();
+  const containerRef = useRef(null);
 
-  // Функция для получения всех диапазонов из choice
   const getAllRanges = () => {
     return Object.keys(choice).reduce((acc, key) => {
       const newRanges = choice[key].new_ranges;
       if (newRanges) {
-        Object.values(newRanges).forEach(rangeArray => {
-          rangeArray.forEach(range => {
-            acc.push({ ...range, key });
-          });
+        Object.entries(newRanges).forEach(([rangeIndex, rangeArray]) => {
+          if (Array.isArray(rangeArray)) {
+            rangeArray.forEach((range, arrayIndex) => {
+              acc.push({ ...range, key, index: rangeIndex, arrayIndex });
+            });
+          }
         });
       }
       return acc;
@@ -23,11 +26,9 @@ const OutputsSpace = () => {
   const ranges = getAllRanges();
 
   return (
-    <div className='w-full h-full p-10 flex flex-col min-h-screen m-6 items-center'>
+    <div ref={containerRef} className='w-full h-full p-10 flex flex-col min-h-screen m-6 items-center'>
       {ranges.map((range, index) => (
-        <div key={index} className="mb-2 w-32 h-12 rounded-xl">
-          <OutputElement range={range} />
-        </div>
+        <OutputElement key={index} range={range} containerRef={containerRef} />
       ))}
     </div>
   );

@@ -8,7 +8,7 @@ const AddUtxo = () => {
 
   return (
     <div>
-      <Button onClick={() => setShowUtxo(!showUtxo)} title="+ add UTXO" className='fixed text-white bg-black p-2 top-20 left-1/2 bg-black hover:bg-zinc-900 z-10 transform -translate-x-1/2'/>
+      <Button onClick={() => setShowUtxo(!showUtxo)} title="+"  className='fixed rounded-full text-black bg-zinc-200 border-white border-4 text-xl w-14 h-14 top-20 left-5 hover:text-white hover:bg-transparent z-10'/>
       <Modal show={showUtxo} onClose={() => setShowUtxo(false)}>
         <YourUtxo />
       </Modal>

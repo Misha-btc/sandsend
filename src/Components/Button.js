@@ -4,7 +4,7 @@ const Button = ({ onClick, title, className }) => {
   return (
     <button
       onClick={onClick}
-      className={`font-bold ${className}`}
+      className={`flex items-center justify-center font-bold ${className}`}
     >
       {title}
     </button>
