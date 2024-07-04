@@ -1,78 +1,74 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useChoice } from '../../Contexts/ChosenUtxo';
 
 // Компонент для отрисовки линий
-const Lines = () => {
-  // Получаем данные из контекста выбора
-  const { choice } = useChoice();
-  // Создаем массив для хранения линий
-  const lines = [];
-  // Хук состояния для хранения смещения (offset)
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
-  // Реф для SVG контейнера
-  const svgRef = useRef(null);
+const Lines = ({ containerInfo }) => {
+  const { choice } = useChoice(); // Получаем выбор пользователя из контекста
+  const svgRef = useRef(null); // Реф для SVG элемента
+  const [offset, setOffset] = useState({ x: 0, y: 0 }); // Состояние для хранения смещения SVG контейнера
 
-  // Эффект для вычисления смещения SVG контейнера при монтировании компонента
-  useEffect(() => {
+  // Функция для вычисления смещения SVG контейнера
+  const computePosition = () => {
     if (svgRef.current) {
-      // Получаем размеры и положение SVG контейнера
-      const rect = svgRef.current.getBoundingClientRect();
-      // Устанавливаем смещение в состоянии
-      setOffset({ x: rect.left, y: rect.top });
-      console.log('SVG container offset:', rect.left, rect.top);
+      const rect = svgRef.current.getBoundingClientRect(); // Получаем границы SVG контейнера
+      setOffset({ x: rect.left, y: rect.top }); // Устанавливаем смещение в состояние
     }
+  };
+
+  // Хук эффекта для вычисления смещения при монтировании и изменении размера окна
+  useEffect(() => {
+    computePosition(); // Вычисляем начальное смещение
+    window.addEventListener('resize', computePosition); // Добавляем обработчик изменения размера окна
+
+    return () => {
+      window.removeEventListener('resize', computePosition); // Удаляем обработчик при размонтировании компонента
+    };
   }, []);
 
-  // Лог текущего состояния выбора
-  console.log("Current choice:", choice);
+  console.log("Current choice:", choice); // Логируем текущее состояние выбора пользователя
 
-  // Вычисляем половину ширины окна для корректировки позиции конца линии
-  const halfWidth = window.innerWidth / 2;
+  // Хук useMemo для вычисления линий на основе выбора пользователя и смещения
+  const computedLines = useMemo(() => {
+    const lines = []; // Массив для хранения линий
+    const containerWidth = containerInfo.width; // Ширина контейнера (половина окна)
+    Object.entries(choice).forEach(([inputKey, inputData]) => {
+      const start = inputData.position; // Начальная позиция линии
 
-  // Проходимся по каждому входному элементу в choice
-  Object.entries(choice).forEach(([inputKey, inputData]) => {
-    // Получаем начальную позицию для текущего элемента
-    const start = inputData.position;
+      if (inputData.new_ranges) { // Проверяем, есть ли новые диапазоны для текущего элемента
+        Object.entries(inputData.new_ranges).forEach(([rangeIndex, rangeArray]) => {
+          if (Array.isArray(rangeArray)) { // Проверяем, является ли rangeArray массивом
+            rangeArray.forEach((range, arrayIndex) => {
+              const end = range.position; // Конечная позиция линии
+              if (start && end && !isNaN(start.x) && !isNaN(start.y) && !isNaN(end.x) && !isNaN(end.y)) { // Проверяем корректность координат
+                const isLeftContainer = start.x < containerWidth; // Определяем, находится ли элемент в левом контейнере
+                const offsetXCorrection = isLeftContainer ? 0 : containerWidth; // Коррекция смещения по оси X для правого контейнера
+                
+                lines.push(
+                  <line
+                    key={`${inputKey}-${rangeIndex}-${arrayIndex}`} // Уникальный ключ для линии
+                    x1={(start.x / 100) * containerInfo.width - offset.x} // Начальная координата X
+                    y1={(start.y / 100) * containerInfo.height - offset.y} // Начальная координата Y
+                    x2={(end.x / 100) * containerInfo.width - offset.x + offsetXCorrection} // Конечная координата X с коррекцией
+                    y2={(end.y / 100) * containerInfo.height - offset.y} // Конечная координата Y
+                    stroke="#808080" // Цвет линии
+                    strokeWidth="2" // Ширина линии
+                    style={{ filter: 'drop-shadow(0 0 5px #808080)' }} // Тень для линии
+                  />
+                );
+              }
+            });
+          }
+        });
+      }
+    });
+    return lines; // Возвращаем массив линий
+  }, [choice, offset.x, offset.y, containerInfo.width, containerInfo.height]); // Пересчитываем линии при изменении выбора или смещения
 
-    // Если есть новые диапазоны для текущего элемента
-    if (inputData.new_ranges) {
-      // Проходимся по каждому новому диапазону
-      Object.entries(inputData.new_ranges).forEach(([rangeIndex, rangeArray]) => {
-        if (Array.isArray(rangeArray)) { // Проверяем, является ли rangeArray массивом
-          // Проходимся по каждому элементу в диапазоне
-          rangeArray.forEach((range, arrayIndex) => {
-            // Получаем конечную позицию для текущего диапазона
-            const end = range.position;
-            if (start && end) {
-              // Лог начальной и конечной позиции
-              console.log(`Start: (${start.x}, ${start.y}), End: (${end.x + halfWidth}, ${end.y})`);
-              // Добавляем линию в массив линий
-              lines.push(
-                <line
-                  key={`${inputKey}-${rangeIndex}-${arrayIndex}`}
-                  x1={start.x - offset.x + 50} // Начальная x координата, скорректированная на смещение
-                  y1={start.y - offset.y + 70} // Начальная y координата, скорректированная на смещение
-                  x2={end.x + halfWidth - offset.x + 50} // Конечная x координата, скорректированная на половину ширины окна и смещение
-                  y2={end.y - offset.y + 70} // Конечная y координата, скорректированная на смещение
-                  stroke="#808080" // Цвет линии
-                  strokeWidth="2" // Ширина линии
-                  style={{ filter: 'drop-shadow(0 0 5px #808080)' }}
-                />
-              );
-            }
-          });
-        }
-      });
-    }
-  });
+  console.log("Lines structure:", computedLines); // Логируем структуру линий
 
-  // Лог структуры линий
-  console.log("Lines structure:", lines);
-
-  // Возвращаем SVG контейнер с линиями
   return (
     <svg ref={svgRef} className="absolute top-0 left-0 w-full h-full z-10 pointer-events-none">
-      {lines}
+      {computedLines} {/* Отрисовываем вычисленные линии */}
     </svg>
   );
 };

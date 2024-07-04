@@ -1,11 +1,27 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import OutputElement from './OutputElement';
 import { useChoice } from '../../Contexts/ChosenUtxo';
-import Lines from './Lines';
 
-const OutputsSpace = () => {
+const OutputsSpace = ({ containerInfo }) => {
   const { choice } = useChoice();
   const containerRef = useRef(null);
+  const [containerPosition, setContainerPosition] = useState({ left: 0, top: 0 });
+
+  const computeContainerPosition = () => {
+    if (containerRef.current && containerInfo.width > 0 && containerInfo.height > 0) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const newPosition = {
+        left: rect.left - containerInfo.left,
+        top: rect.top - containerInfo.top
+      };
+      console.log("Container position:", newPosition); // Debugging log
+      setContainerPosition(newPosition);
+    }
+  };
+
+  useEffect(() => {
+    computeContainerPosition();
+  }, [containerInfo]);
 
   const getAllRanges = () => {
     return Object.keys(choice).reduce((acc, key) => {
@@ -26,9 +42,9 @@ const OutputsSpace = () => {
   const ranges = getAllRanges();
 
   return (
-    <div ref={containerRef} className='w-full h-full p-10 flex flex-col min-h-screen m-6 items-center'>
+    <div ref={containerRef} className='w-full h-full p-20 flex flex-col min-h-screen m-6 items-center'>
       {ranges.map((range, index) => (
-        <OutputElement key={index} range={range} containerRef={containerRef} />
+        <OutputElement key={index} range={range} containerRef={containerRef} containerInfo={containerInfo} containerPosition={containerPosition} />
       ))}
     </div>
   );
