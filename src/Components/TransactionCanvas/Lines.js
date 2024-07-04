@@ -1,6 +1,11 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useChoice } from '../../Contexts/ChosenUtxo';
 
+// Функция для создания команды кривой Безье
+const createBezierPath = (start, control1, control2, end) => {
+  return `M ${start.x},${start.y} C ${control1.x},${control1.y} ${control2.x},${control2.y} ${end.x},${end.y}`;
+};
+
 // Компонент для отрисовки линий
 const Lines = ({ containerInfo }) => {
   const { choice } = useChoice(); // Получаем выбор пользователя из контекста
@@ -43,16 +48,22 @@ const Lines = ({ containerInfo }) => {
                 const isLeftContainer = start.x < containerWidth; // Определяем, находится ли элемент в левом контейнере
                 const offsetXCorrection = isLeftContainer ? 0 : containerWidth; // Коррекция смещения по оси X для правого контейнера
                 
+                const startX = (start.x / 100) * containerInfo.width - offset.x;
+                const startY = (start.y / 100) * containerInfo.height - offset.y;
+                const endX = (end.x / 100) * containerInfo.width - offset.x + offsetXCorrection;
+                const endY = (end.y / 100) * containerInfo.height - offset.y;
+
+                // Вычисляем контрольные точки для кривой Безье
+                const controlPoint1 = { x: startX + (endX - startX) / 2, y: startY };
+                const controlPoint2 = { x: startX + (endX - startX) / 2, y: endY };
+
                 lines.push(
-                  <line
+                  <path
                     key={`${inputKey}-${rangeIndex}-${arrayIndex}`} // Уникальный ключ для линии
-                    x1={(start.x / 100) * containerInfo.width - offset.x} // Начальная координата X
-                    y1={(start.y / 100) * containerInfo.height - offset.y} // Начальная координата Y
-                    x2={(end.x / 100) * containerInfo.width - offset.x + offsetXCorrection} // Конечная координата X с коррекцией
-                    y2={(end.y / 100) * containerInfo.height - offset.y} // Конечная координата Y
-                    stroke="#808080" // Цвет линии
-                    strokeWidth="2" // Ширина линии
-                    style={{ filter: 'drop-shadow(0 0 5px #808080)' }} // Тень для линии
+                    d={createBezierPath({ x: startX, y: startY }, controlPoint1, controlPoint2, { x: endX, y: endY })} // Путь кривой Безье
+                    stroke="#EA580C" // Цвет линии
+                    strokeWidth="4" // Ширина линии
+                    fill="none" // Без заливки
                   />
                 );
               }

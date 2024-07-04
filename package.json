@@ -13,7 +13,6 @@
     "@use-gesture/react": "^10.3.1",
     "autoprefixer": "^10.4.19",
     "axios": "^1.7.2",
-    "d3": "^7.9.0",
     "nostr-tools": "^2.7.0",
     "postcss-cli": "^11.0.0",
     "react": "^18.3.1",

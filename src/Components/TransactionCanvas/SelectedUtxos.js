@@ -24,9 +24,9 @@ const SelectedUtxos = ({ containerInfo }) => {
     }, [containerInfo]);
 
     return (
-        <div ref={containerRef} className='w-full h-full p-20 flex flex-col min-h-screen m-6 items-center'>
+        <div ref={containerRef} className='p-20 flex flex-col min-h-screen m-6 items-center'>
             {Object.keys(choice).map(key => (
-                <div key={key} className="mb-6 w-32 h-12 rounded-xl">
+                <div key={key} className="mb-6 h-12 rounded-xl">
                     <InputElement utxoKey={key} containerRef={containerRef} containerInfo={containerInfo} containerPosition={containerPosition} />
                 </div>
             ))}

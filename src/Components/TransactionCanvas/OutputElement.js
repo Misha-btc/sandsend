@@ -11,11 +11,19 @@ const OutputElement = ({ range, containerRef, containerInfo, containerPosition }
   const { updateRangePosition } = useChoice();
 
   const getTitle = () => {
-    if (range && range.address) {
+    if (range && range.address && range.sats) {
       return `${range.address.slice(0, 3)}...${range.address.slice(-7)}`;
     }
-    return 'No range';
+    if (!range.address && range.sats) {
+      return 'No address';
+    }
+    if (range.address && !range.sats) {
+      return 'No range';
+    }
+    return null; // Если нет адреса и диапазона, не рендерим элемент
   };
+
+  const title = getTitle();
 
   const updatePosition = () => {
     if (elementRef.current && containerRef.current && containerInfo.width > 0 && containerInfo.height > 0) {
@@ -42,22 +50,26 @@ const OutputElement = ({ range, containerRef, containerInfo, containerPosition }
     }
   }, [elementRef, containerRef]); // Убедимся, что позиция обновляется при первом рендере
 
+  if (!title) {
+    return null; // Не рендерим элемент, если нет адреса и диапазона
+  }
+
   return (
     <>
       <div ref={elementRef} className='mb-6 z-20'>
         <Button
           onClick={() => setShowUtxo(!showUtxo)}
-          className='rounded-xl hover:bg-orange-700 bg-orange-600 text-white p-3 w-32 h-12'
-          title={getTitle()}
+          className={`rounded-xl p-3 w-32 h-12 ${title === 'No address' ? 'bg-gray-400' : 'bg-orange-600'} text-white hover:bg-orange-700 shadow-md hover:drop-shadow-xl`}
+          title={title}
         />
       </div>
       <Modal show={showUtxo} onClose={() => setShowUtxo(false)}>
         <ModalHeader title='OUTPUT' />
         <div>
-          <p>Min: {range.min}</p>
-          <p>Max: {range.max}</p>
-          <p>Sats: {range.sats}</p>
-          <p>Address: {range.address}</p>
+          {range.min && <p>Min: {range.min}</p>}
+          {range.max && <p>Max: {range.max}</p>}
+          {range.sats && <p>Sats: {range.sats}</p>}
+          {range.address && <p>Address: {range.address}</p>}
           <p>Position: {`x: ${position.x}%, y: ${position.y}%`}</p>
         </div>
       </Modal>

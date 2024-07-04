@@ -6,4 +6,7 @@
   .text-glow {
     text-shadow: 0 0 2px white;
   }
+  .text-glowO {
+    text-shadow: 0 0 5px rgb(234 88 12)
+  }
 }
