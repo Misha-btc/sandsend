@@ -9,11 +9,10 @@ function App() {
   return (
       <React.StrictMode>
         <Header />
-            <div className="flex-grow mt-3 mb-1 flex flex-col h-full">
+
               <AddUtxo />
               <CreateTransaction />
               <TransactionCanvas />
-            </div>
         <Footer />
       </React.StrictMode>
   );

@@ -7,12 +7,16 @@ const AddUtxo = () => {
   const [showUtxo, setShowUtxo] = useState(false);
 
   return (
-    <div>
-      <Button onClick={() => setShowUtxo(!showUtxo)} title="+"  className='fixed rounded-full text-black bg-zinc-200 border-white border-4 text-xl w-14 h-14 top-20 left-5 hover:text-white hover:bg-transparent z-10'/>
+    <>
+      <Button 
+        onClick={() => setShowUtxo(!showUtxo)} 
+        title="UTXOs" 
+        className='fixed rounded-full text-white bg-zinc-900 border-zinc-200 border-4 text-sm w-16 h-16 top-20 left-5 hover:text-white hover:bg-zinc-950 z-10 flex items-center justify-center'
+      />
       <Modal show={showUtxo} onClose={() => setShowUtxo(false)}>
         <YourUtxo />
       </Modal>
-    </div>
+    </>
   );
 };
 

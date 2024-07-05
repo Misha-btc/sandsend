@@ -1,14 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useSpring, animated } from '@react-spring/web';
 
-const Button = ({ onClick, title, className }) => {
+const AnimatedButton = ({ onClick, title, className }) => {
+  const [isPressed, setPressed] = useState(false);
+
+  const springProps = useSpring({
+    transform: isPressed ? 'scale(0.95)' : 'scale(1)',
+    config: { tension: 300, friction: 10 }
+  });
+
   return (
-    <button
+    <animated.button
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
       onClick={onClick}
-      className={`flex items-center justify-center font-bold ${className}`}
+      style={springProps}
+      className={`font-bold ${className}`}
     >
       {title}
-    </button>
+    </animated.button>
   );
 };
 
-export default Button;
+export default AnimatedButton;
