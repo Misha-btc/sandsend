@@ -1,78 +1,54 @@
-import React, { useRef, useState, useEffect } from 'react';
-import Button from '../Button';
-import Modal from '../Modal/Modal';
-import ModalHeader from '../Modal/ModalHeader';
-import { useChoice } from '../../Contexts/ChosenUtxo';
+import React, { useState } from 'react';
+import Button from '../Button'; // Импорт кнопки
+import Modal from '../Modal/Modal'; // Импорт модального окна
+import ModalHeader from '../Modal/ModalHeader'; // Импорт заголовка модального окна
 
-const OutputElement = ({ range, containerRef, containerInfo, containerPosition }) => {
-  const [showUtxo, setShowUtxo] = useState(false);
-  const elementRef = useRef(null);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const { updateRangePosition } = useChoice();
+// Компонент OutputElement отображает информацию о диапазоне (range) и модальное окно с деталями
+const OutputElement = ({ range }) => {
+  const [showUtxo, setShowUtxo] = useState(false); // Состояние для управления отображением модального окна
 
+  // Функция для получения заголовка на основе range
   const getTitle = () => {
     if (range && range.address && range.sats) {
+      // Если есть адрес и количество сатоши, возвращает обрезанный адрес
       return `${range.address.slice(0, 3)}...${range.address.slice(-7)}`;
     }
     if (!range.address && range.sats) {
+      // Если нет адреса, но есть сатоши, возвращает 'No address'
       return 'No address';
     }
     if (range.address && !range.sats) {
+      // Если есть адрес, но нет сатоши, возвращает 'No range'
       return 'No range';
     }
-    return null; // Если нет адреса и диапазона, не рендерим элемент
+    return null; // В противном случае возвращает null
   };
 
-  const title = getTitle();
-
-  const updatePosition = () => {
-    if (elementRef.current && containerRef.current && containerInfo.width > 0 && containerInfo.height > 0) {
-      const elementRect = elementRef.current.getBoundingClientRect();
-      const newPosition = {
-        x: ((elementRect.left + elementRect.width / 2 - containerPosition.left) / containerInfo.width) * 100 + 50, // Позиция относительно ширины контейнера в процентах, с учетом центра элемента и смещения на половину контейнера
-        y: ((elementRect.top + elementRect.height / 2 - containerPosition.top) / containerInfo.height) * 100 + 1 // Позиция относительно высоты контейнера в процентах, с учетом центра элемента
-      };
-      console.log("Element position:", newPosition); // Debugging log
-      if (!isNaN(newPosition.x) && !isNaN(newPosition.y)) {
-        setPosition(newPosition);
-        updateRangePosition(range.key, range.index, range.arrayIndex, newPosition); // Обновляем позицию в контексте
-      }
-    }
-  };
-
-  useEffect(() => {
-    updatePosition();
-  }, [containerInfo, containerPosition]); // Обновляем позицию при изменении размеров контейнера
-
-  useEffect(() => {
-    if (elementRef.current) {
-      updatePosition();
-    }
-  }, [elementRef, containerRef]); // Убедимся, что позиция обновляется при первом рендере
+  const title = getTitle(); // Получение заголовка для кнопки
 
   if (!title) {
-    return null; // Не рендерим элемент, если нет адреса и диапазона
+    return null; // Если заголовка нет, компонент не отображается
   }
 
   return (
     <>
-      <div ref={elementRef} className='mb-6 z-20'>
+      <div>
         <Button
-          onClick={() => setShowUtxo(!showUtxo)}
-          className={`rounded-xl p-3 w-32 h-12 ${title === 'No address' ? 'bg-gray-400' : 'bg-orange-600'} text-white hover:bg-orange-700 shadow-md hover:drop-shadow-xl`}
-          title={title}
+          onClick={() => setShowUtxo(!showUtxo)} // Переключение состояния отображения модального окна
+          className={`rounded-xl mt-10 z-10 relative w-32 h-12 ${title === 'No address' ? 'bg-gray-400' : 'bg-orange-600'} text-white hover:bg-orange-700 shadow-md hover:drop-shadow-xl`}
+          title={title} // Установка заголовка кнопки
         />
+      
+        <Modal show={showUtxo} onClose={() => setShowUtxo(false)}> {/* Управление отображением модального окна */}
+          <ModalHeader title='OUTPUT' /> {/* Заголовок модального окна */}
+          <div>
+            {range.min && <p>Min: {range.min}</p>} {/* Отображение минимального значения диапазона, если оно есть */}
+            {range.max && <p>Max: {range.max}</p>} {/* Отображение максимального значения диапазона, если оно есть */}
+            {range.sats && <p>Sats: {range.sats}</p>} {/* Отображение количества сатоши, если оно есть */}
+            {range.address && <p>Address: {range.address}</p>} {/* Отображение адреса, если он есть */}
+          </div>
+        </Modal>
       </div>
-      <Modal show={showUtxo} onClose={() => setShowUtxo(false)}>
-        <ModalHeader title='OUTPUT' />
-        <div>
-          {range.min && <p>Min: {range.min}</p>}
-          {range.max && <p>Max: {range.max}</p>}
-          {range.sats && <p>Sats: {range.sats}</p>}
-          {range.address && <p>Address: {range.address}</p>}
-          <p>Position: {`x: ${position.x}%, y: ${position.y}%`}</p>
-        </div>
-      </Modal>
     </>
   );
 };
