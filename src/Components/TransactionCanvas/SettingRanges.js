@@ -1,20 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useChoice } from '../../Contexts/ChosenUtxo';
 import RangeInput from './RangeInput';
+import RangeOutput from './RangeOutput';
 
 function SettingRanges({ dataKey }) {
     const { choice } = useChoice();
     const data = choice[dataKey]; // Access the data using the provided key
+    const [rangeOutputIndex, setRangeOutputIndex] = useState(null);
 
     if (!data) {
         return <div>No data found for the provided key.</div>;
     }
 
     return (
-        <div className="flex flex-col items-center justify-center"> {/* Центрирование содержимого */}
-            <div className='w-full h-full p-5 flex flex-col items-center m-2'>
-                <div className="mb-2">
-                    <strong>UTXO:</strong> {dataKey}:{dataKey}
+        <div className="flex flex-col"> {/* Центрирование содержимого */}
+            <div className='w-full p-2'>
+                <div className="mb-2 flex-row font-bold items-end">
+                    <span className="mr-1 items-end">UTXO:</span>
+                    <span className="text-base">{dataKey}</span>
                 </div>
                 <div className="mb-2">
                     <strong>Value:</strong> {data.value} sats
@@ -23,18 +26,34 @@ function SettingRanges({ dataKey }) {
                     <strong>Address:</strong> {data.address}
                 </div>
                 <strong className="mb-4">Sat ranges:</strong>
-                <div className="flex flex-col items-center w-full"> {/* Центрирование элементов Sat ranges */}
+            </div>
+            <div className='flex flex-row'>
+                <div className="w-1/2 flex p-2 justify-center flex-col"> {/* Центрирование элементов Sat ranges */}
                     {data.sat_ranges.map((range, index) => (
-                        <div key={index} className="mb-4 w-full flex flex-col items-center"> {/* Установка ширины и отступов */}
-                            <div className="mb-2 text-center">
-                                {index+1}. {range.join(' - ')} {`(${range[1]-range[0]} sats)`}
-                            </div>
-                            <RangeInput dataKey={dataKey} rangeIndex={index}>
+                        <div key={index}>
+                            <RangeInput 
+                                dataKey={dataKey} 
+                                rangeIndex={index} 
+                                setRangeOutput={setRangeOutputIndex} 
+                            >
                                 {range}
                             </RangeInput>
                         </div>
                     ))}
                 </div>
+                <div className="w-1/2 justify-center flex">
+                    <div className='flex items-center justify-center'>
+                        <RangeOutput show={data.new_ranges !== undefined}/>
+                        {console.log(data.new_ranges)}
+                    </div>
+                </div>
+            </div>
+            <div className='flex justify-center mb-10 items-center w-full'>
+                <input
+                    className="border-2 border-black text-center w-1/2 rounded-xl"
+                    type="text"
+                    placeholder="General address"
+                />   
             </div>
         </div>
     );

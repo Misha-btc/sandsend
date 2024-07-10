@@ -1,45 +1,47 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 
-// Создаем контекст
-const ChosenUtxoContext = createContext(); // Создаем контекст для хранения выбранных UTXO
+// Создаем контекст ChosenUtxoContext
+const ChosenUtxoContext = createContext();
 
-// Провайдер для контекста
+// Провайдер для контекста ChosenUtxoContext
 export const ChoiceProvider = ({ children }) => {
     // Инициализируем состояние choice из localStorage, если оно существует, иначе пустым объектом
     const [choice, setChoice] = useState(() => {
-        const storedChoice = localStorage.getItem('choice'); // Получаем данные из localStorage
-        return storedChoice ? JSON.parse(storedChoice) : {}; // Парсим данные или возвращаем пустой объект
+        const storedChoice = localStorage.getItem('choice');
+        return storedChoice ? JSON.parse(storedChoice) : {};
     });
 
     // Функция для добавления UTXO в выбор
     const addToChoice = (utxo, detail) => {
         setChoice(prevChoice => {
-            const newChoice = { ...prevChoice, [utxo]: detail }; // Создаем новый объект с добавленным UTXO
-            localStorage.setItem('choice', JSON.stringify(newChoice)); // Сохраняем новый выбор в localStorage
-            return newChoice; // Возвращаем обновленный выбор
+            const newChoice = { ...prevChoice, [utxo]: detail };
+            localStorage.setItem('choice', JSON.stringify(newChoice));
+            return newChoice;
         });
     };
 
     // Функция для удаления UTXO из выбора
     const removeFromChoice = (utxo) => {
         setChoice(prevChoice => {
-            const { [utxo]: _, ...newChoice } = prevChoice; // Создаем новый объект без удаленного UTXO
-            localStorage.setItem('choice', JSON.stringify(newChoice)); // Сохраняем обновленный выбор в localStorage
-            return newChoice; // Возвращаем новый выбор
+            const { [utxo]: _, ...newChoice } = prevChoice;
+            localStorage.setItem('choice', JSON.stringify(newChoice));
+            return newChoice;
         });
     };
 
-    // Функция для добавления диапазона к UTXO
+    // Функция для добавления диапазонов к UTXO
     const addToRanges = useCallback((utxo, rangeIndex, ranges) => {
         setChoice(prevChoice => {
-            const utxoDetail = prevChoice[utxo] || {};
-            const currentRanges = utxoDetail.new_ranges || {};
+            const utxoDetail = prevChoice[utxo] || {}; // Достаем текущие детали UTXO или создаем новый объект
+            const currentRanges = utxoDetail.new_ranges || {}; // Достаем текущие диапазоны или создаем новый объект
 
+            // Обновляем диапазоны для указанного индекса
             const newRanges = {
                 ...currentRanges,
                 [rangeIndex]: ranges
             };
 
+            // Обновляем состояние choice с новыми диапазонами
             const newChoice = {
                 ...prevChoice,
                 [utxo]: {
@@ -48,58 +50,44 @@ export const ChoiceProvider = ({ children }) => {
                 }
             };
 
-            localStorage.setItem('choice', JSON.stringify(newChoice));
+            localStorage.setItem('choice', JSON.stringify(newChoice)); // Сохраняем в localStorage
             return newChoice;
         });
     }, []);
 
-    const updatePosition = (key, position) => {
-        setChoice(prevChoice => ({
-            ...prevChoice,
-            [key]: {
-                ...prevChoice[key],
-                position
-            }
-        }));
-    };
-
-    const updateRangePosition = (key, rangeIndex, rangeArrayIndex, position) => {
+    // Функция для удаления диапазонов из UTXO
+    const removeFromRanges = useCallback((utxo, rangeIndex) => {
         setChoice(prevChoice => {
-            const utxoDetail = prevChoice[key] || {};
-            const currentRanges = utxoDetail.new_ranges || {};
-            const updatedRangeArray = currentRanges[rangeIndex].map((range, idx) => {
-                if (idx === rangeArrayIndex) {
-                    return { ...range, position };
-                }
-                return range;
-            });
+            const utxoDetail = prevChoice[utxo] || {}; // Достаем текущие детали UTXO или создаем новый объект
+            const currentRanges = utxoDetail.new_ranges || {}; // Достаем текущие диапазоны или создаем новый объект
 
-            const newRanges = {
-                ...currentRanges,
-                [rangeIndex]: updatedRangeArray
-            };
+            // Удаляем указанный диапазон
+            const { [rangeIndex]: _, ...newRanges } = currentRanges;
 
+            // Если диапазоны пусты, удаляем объект new_ranges
+            const newUtxoDetail = Object.keys(newRanges).length === 0
+                ? { ...utxoDetail, new_ranges: undefined }
+                : { ...utxoDetail, new_ranges: newRanges };
+
+            // Обновляем состояние choice
             const newChoice = {
                 ...prevChoice,
-                [key]: {
-                    ...utxoDetail,
-                    new_ranges: newRanges
-                }
+                [utxo]: newUtxoDetail
             };
 
-            localStorage.setItem('choice', JSON.stringify(newChoice));
+            localStorage.setItem('choice', JSON.stringify(newChoice)); // Сохраняем в localStorage
             return newChoice;
         });
-    };
+    }, []);
 
-
+    // Логирование текущего состояния choice для отладки
     useEffect(() => {
-        console.log('Current choice:', choice); // Лог текущего состояния choice
+        console.log('Current choice:', choice);
     }, [choice]);
 
     return (
         // Возвращаем провайдер контекста с переданными значениями состояния и функциями
-        <ChosenUtxoContext.Provider value={{ choice, addToChoice, removeFromChoice, addToRanges, updatePosition, updateRangePosition }}>
+        <ChosenUtxoContext.Provider value={{ choice, addToChoice, removeFromChoice, addToRanges, removeFromRanges }}>
             {children} {/* Рендерим дочерние компоненты */}
         </ChosenUtxoContext.Provider>
     );
