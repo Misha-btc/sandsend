@@ -6,7 +6,7 @@ import RangeOutput from './RangeOutput';
 function SettingRanges({ dataKey }) {
     const { choice } = useChoice();
     const data = choice[dataKey]; // Access the data using the provided key
-    const [rangeOutputIndex, setRangeOutputIndex] = useState(null);
+    const [removeInfo, setRemoveInfo] = useState({ mainIndex: null, subIndex: null });
 
     if (!data) {
         return <div>No data found for the provided key.</div>;
@@ -28,13 +28,13 @@ function SettingRanges({ dataKey }) {
                 <strong className="mb-4">Sat ranges:</strong>
             </div>
             <div className='flex flex-row'>
-                <div className="w-1/2 flex p-2 justify-center flex-col"> {/* Центрирование элементов Sat ranges */}
+                <div className="w-1/2 flex p-2 justify-center flex-col "> {/* Центрирование элементов Sat ranges */}
                     {data.sat_ranges.map((range, index) => (
                         <div key={index}>
                             <RangeInput 
-                                dataKey={dataKey} 
+                                dataKey={dataKey}
                                 rangeIndex={index} 
-                                setRangeOutput={setRangeOutputIndex} 
+                                setRemoveInfo={setRemoveInfo}
                             >
                                 {range}
                             </RangeInput>
@@ -43,14 +43,16 @@ function SettingRanges({ dataKey }) {
                 </div>
                 <div className="w-1/2 justify-center flex">
                     <div className='flex items-center justify-center'>
-                        <RangeOutput show={data.new_ranges !== undefined}/>
-                        {console.log(data.new_ranges)}
+                        <RangeOutput 
+                          dataKey={dataKey}
+                          removeInfo={removeInfo} // Передаем removeInfo в RangeOutput
+                          />
                     </div>
                 </div>
             </div>
             <div className='flex justify-center mb-10 items-center w-full'>
                 <input
-                    className="border-2 border-black text-center w-1/2 rounded-xl"
+                    className="bg-zinc-200 text-white border-zinc-800 border-8 text-center w-1/2 rounded-full"
                     type="text"
                     placeholder="General address"
                 />   

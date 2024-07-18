@@ -13,9 +13,20 @@ export const ChoiceProvider = ({ children }) => {
 
     // Функция для добавления UTXO в выбор
     const addToChoice = (utxo, detail) => {
+        const rangeValue = {};
+        
+        if (detail.sat_ranges) {
+            detail.sat_ranges.forEach((range, index) => {
+                rangeValue[index] = range[1] - range[0];
+            });
+        }
+    
+        detail.rangeValue = rangeValue;
+
         setChoice(prevChoice => {
             const newChoice = { ...prevChoice, [utxo]: detail };
             localStorage.setItem('choice', JSON.stringify(newChoice));
+
             return newChoice;
         });
     };
@@ -46,9 +57,10 @@ export const ChoiceProvider = ({ children }) => {
                 ...prevChoice,
                 [utxo]: {
                     ...utxoDetail,
-                    new_ranges: newRanges
+                    new_ranges: newRanges,
                 }
             };
+
 
             localStorage.setItem('choice', JSON.stringify(newChoice)); // Сохраняем в localStorage
             return newChoice;

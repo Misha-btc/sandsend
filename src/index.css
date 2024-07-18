@@ -7,7 +7,23 @@
     text-shadow: 0 0 2px white;
   }
   .text-glowO {
-    text-shadow: 0 0 5px rgb(234 88 12)
+    text-shadow: 0 0 5px rgb(234 88 12);
+  }
+
+  /* Отключение стрелок и прокрутки для input[type="number"] */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    @apply appearance-none;
+    margin: 0;
+  }
+
+  input[type="number"] {
+    @apply appearance-none;
+    outline: none;
+  }
+
+  input[type="number"] {
+    -moz-appearance: textfield;
   }
 }
 

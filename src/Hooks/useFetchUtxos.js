@@ -89,7 +89,6 @@ const useFetchUtxos = (url) => {
             if (response.data && Array.isArray(response.data.result)) {
                 const newTransactionDetails = { ordinals: {}, payment: {} }; // Создаем объект для новых деталей транзакций
                 const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {}; // Получаем список адресов из localStorage
-    
                 // Проходим по результатам запросов
                 response.data.result.forEach((res, index) => {
                     if (res.result) {
