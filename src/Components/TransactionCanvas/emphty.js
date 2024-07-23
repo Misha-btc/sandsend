@@ -8,29 +8,85 @@ export function RangeOutput({ dataKey, removeInfo }) {
   const [inputs, setInputs] = useState({}); // Состояние для хранения входных данных
   const [rangeIndices, setRangeIndices] = useState([]); // Состояние для хранения индексов диапазонов
   console.log(`inputs`, inputs);
-
   useEffect(() => {
     if (data && data.new_ranges) { // Проверка наличия данных и новых диапазонов
       setInputs((prevInputs) => {
-        const newInputs = { ...prevInputs }; // Создание нового объекта для входных данных
+        const newInputs = { ...prevInputs }; // Создание нового объекта для входных данных на основе предыдущих входных данных
+  
         Object.keys(data.new_ranges).forEach((key) => { // Проход по ключам новых диапазонов
-          if (data.new_ranges[key].length > 0) {
-            newInputs[key] = data.new_ranges[key].map((range) => ({ // Инициализация новых входных данных
-              min: range.min,
-              max: range.max,
-              sats: range.max - range.min, // Значение сатоши только для первого диапазона
-              address: '', // Адрес
-              startRangeIndex: key,
-              endRangeIndex: '',
-            }));
+          if (data.new_ranges[key].length > 0) { // Проверка наличия элементов в текущем ключе диапазона
+            newInputs[key] = data.new_ranges[key].map((range, index) => { // Проход по каждому диапазону в текущем ключе
+              let newInput = {}; // Инициализация нового объекта для входных данных
+  
+              if (inputs[key] && inputs[key][index] && data.sat_ranges[key]) { // Проверка наличия данных в inputs и sat_ranges для текущего ключа и индекса
+                let remainingSats = inputs[key][index].sats - (range.max - range.min); // Расчет оставшихся сатоши после вычитания диапазона
+                let currentKey = key; // Инициализация текущего ключа
+                let currentIndex = index; // Инициализация текущего индекса
+                let startRangeIndex = key; // Установка начального индекса диапазона
+                let endRangeIndex = key; // Инициализация конечного индекса диапазона
+                let ranges = {}; // Инициализация объекта для хранения всех промежуточных диапазонов
+                let rangeCounter = 0; // Счетчик для индексов в ranges
+  
+                while (remainingSats > 0) { // Цикл, продолжающийся, пока остаются сатоши
+                  if (remainingSats > (data.sat_ranges[currentKey][1] - data.sat_ranges[currentKey][0])) { // Если оставшихся сатоши больше, чем текущий диапазон
+                    ranges[rangeCounter] = {
+                      min: data.sat_ranges[currentKey][0],
+                      max: data.sat_ranges[currentKey][1],
+                      sats: data.sat_ranges[currentKey][1] - data.sat_ranges[currentKey][0],
+                    };
+                    remainingSats -= (data.sat_ranges[currentKey][1] - data.sat_ranges[currentKey][0]); // Вычитаем текущий диапазон из оставшихся сатоши
+                    currentKey++; // Переход к следующему ключу диапазона
+                    currentIndex = 0; // Сбрасываем индекс к 0, так как переходим к следующему диапазону
+                    rangeCounter++; // Увеличиваем счетчик диапазонов
+                  } else {
+                    ranges[rangeCounter] = {
+                      min: data.sat_ranges[currentKey][0],
+                      max: data.sat_ranges[currentKey][0] + remainingSats,
+                      sats: remainingSats,
+                    };
+                    endRangeIndex = currentKey; // Устанавливаем конечный индекс диапазона
+                    remainingSats = 0; // Обнуляем оставшиеся сатоши, так как они распределены
+                  }
+                }
+  
+                newInput = {
+                  ranges: ranges, // Добавляем все промежуточные диапазоны
+                  min: range.min,
+                  max: data.sat_ranges[currentKey][1],
+                  sats: inputs[key][index].sats,
+                  address: inputs[key][index].address,
+                  startRangeIndex: startRangeIndex,
+                  endRangeIndex: endRangeIndex,
+                };
+              } else { // Если данные отсутствуют в inputs или sat_ranges
+                newInput = { // Создание нового объекта с данными по умолчанию
+                  ranges: {
+                    0: {
+                      min: range.min,
+                      max: range.max,
+                      sats: range.max - range.min,
+                    },
+                  },
+                  min: range.min,
+                  max: range.max,
+                  sats: range.max - range.min,
+                  address: '',
+                  startRangeIndex: key,
+                  endRangeIndex: key,
+                };
+              }
+  
+              return newInput; // Возвращаем новый объект для текущего диапазона
+            });
           }
         });
-        return newInputs;
+  
+        return newInputs; // Возвращаем обновленные входные данные
       });
-
-      setRangeIndices(Object.keys(data.new_ranges)); // Установка индексов диапазонов
+  
+      setRangeIndices(Object.keys(data.new_ranges)); // Установка индексов диапазонов на основе новых данных
     }
-  }, [data]);
+  }, [data]); // Эффект зависит от изменений в data
 
   useEffect(() => {
     if (data && data.new_ranges) { // Проверка наличия данных и новых диапазонов
@@ -85,10 +141,8 @@ export function RangeOutput({ dataKey, removeInfo }) {
 
   const handleInputChange = (mainIndex, subIndex, field, value) => {
     const intValue = field === 'sats' ? parseInt(value, 10) : value;
-
     setInputs((prevInputs) => { // Установка новых входных данных
       const updatedInputs = { ...prevInputs }; // Создание копии предыдущих входных данных
-
       if (!updatedInputs[mainIndex]) { // Если ключ отсутствует в предыдущих входных данных
         updatedInputs[mainIndex] = []; // Инициализация массива для ключа
       }
@@ -98,23 +152,13 @@ export function RangeOutput({ dataKey, removeInfo }) {
       updatedInputs[mainIndex][subIndex][field] = intValue; // Обновление значения по полю
       console.log(`sats`, updatedInputs[mainIndex][subIndex].sats);
 
-      let remainingSats = updatedInputs[mainIndex][subIndex].sats;
-      const newRanges = [];
-
-      // Распределение сатоши по диапазонам
-      data.new_ranges[mainIndex].forEach((range, index) => {
-        if (remainingSats > 0) {
-          const maxSatsInRange = range.max - range.min;
-          const satsToAllocate = Math.min(maxSatsInRange, remainingSats);
-          newRanges.push({
-            min: range.min,
-            max: range.min + satsToAllocate,
-            sats: satsToAllocate,
-            address: updatedInputs[mainIndex][subIndex].address
-          });
-          remainingSats -= satsToAllocate;
-        }
-      });
+      // Обновление new_ranges в choice через addToRanges
+      const newRanges = updatedInputs[mainIndex].map(input => ({
+        min: input.min, // нужно чтобы мин и макс отображали индексы из разных ренж индексов или даже ютхо, если полученый инпут больше содержимого rangeindex
+        max: input.min + input.sats, // нужно
+        sats: input.sats,
+        address: input.address
+      }));
 
       addToRanges(dataKey, mainIndex, newRanges);
 

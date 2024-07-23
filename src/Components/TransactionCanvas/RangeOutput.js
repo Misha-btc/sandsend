@@ -1,135 +1,233 @@
 import React, { useState, useEffect } from "react";
 import { useChoice } from '../../Contexts/ChosenUtxo';
 
+// Компонент для отображения и управления диапазонами сатоши
 export function RangeOutput({ dataKey, removeInfo }) {
-  const { choice, addToRanges } = useChoice(); // Получение данных из контекста выбора
+  const { choice } = useChoice(); // Получение данных из контекста выбора
   const data = choice ? choice[dataKey] : null; // Получение данных для конкретного ключа
 
   const [inputs, setInputs] = useState({}); // Состояние для хранения входных данных
   const [rangeIndices, setRangeIndices] = useState([]); // Состояние для хранения индексов диапазонов
-  console.log(`inputs`, inputs);
 
+  console.log(`INPUT`, inputs); // Лог для отладки
+
+  // Эффект для инициализации состояния inputs при изменении данных
   useEffect(() => {
-    if (data && data.new_ranges) { // Проверка наличия данных и новых диапазонов
+    if (data && data.new_ranges) {
       setInputs((prevInputs) => {
-        const newInputs = { ...prevInputs }; // Создание нового объекта для входных данных
-        Object.keys(data.new_ranges).forEach((key) => { // Проход по ключам новых диапазонов
+        const newInputs = { ...prevInputs };
+
+        // Проход по ключам новых диапазонов
+        Object.keys(data.new_ranges).forEach((key) => {
           if (data.new_ranges[key].length > 0) {
-            newInputs[key] = data.new_ranges[key].map((range) => ({ // Инициализация новых входных данных
-              min: range.min,
-              max: range.max,
-              sats: range.max - range.min, // Значение сатоши только для первого диапазона
-              address: '', // Адрес
-              startRangeIndex: key,
-              endRangeIndex: '',
-            }));
+            // Проход по каждому диапазону в текущем ключе
+            newInputs[key] = data.new_ranges[key].map((range, index) => {
+              let newInput = {};
+              let ranges = {};
+              let remainingSats = inputs[key]?.[index]?.sats || (range.max - range.min);
+              let currentKey = parseInt(key);
+              let rangeCounter = 0;
+              let startRangeIndex = key;
+              let endRangeIndex = key;
+
+              // Инициализация первого диапазона
+              const initialRange = Math.min(remainingSats, range.max - range.min);
+              ranges[rangeCounter] = {
+                min: range.min,
+                max: range.min + initialRange,
+                sats: initialRange,
+              };
+
+              remainingSats -= initialRange;
+              rangeCounter++;
+
+              // Обработка оставшихся сатоши
+              while (remainingSats > 0) {
+                const nextRange = data.new_ranges[currentKey + 1]?.[0] || data.sat_ranges[currentKey + 1];
+                if (nextRange) {
+                  const nextRangeSize = nextRange.max ? (nextRange.max - nextRange.min) : (nextRange[1] - nextRange[0]);
+
+                  if (remainingSats > nextRangeSize) {
+                    ranges[rangeCounter] = {
+                      min: nextRange.min || nextRange[0],
+                      max: nextRange.max || nextRange[1],
+                      sats: nextRangeSize,
+                    };
+                    remainingSats -= nextRangeSize;
+                    currentKey++;
+                    rangeCounter++;
+                  } else {
+                    ranges[rangeCounter] = {
+                      min: nextRange.min || nextRange[0],
+                      max: (nextRange.min || nextRange[0]) + remainingSats,
+                      sats: remainingSats,
+                    };
+                    remainingSats = 0;
+                    endRangeIndex = currentKey + 1;
+                  }
+                } else {
+                  remainingSats = 0;
+                }
+              }
+
+              newInput = {
+                ranges: ranges,
+                address: inputs[key]?.[index]?.address || '',
+                startRangeIndex: startRangeIndex,
+                endRangeIndex: endRangeIndex,
+                sats: inputs[key]?.[index]?.sats || (range.max - range.min),
+              };
+
+              return newInput;
+            });
           }
         });
 
         return newInputs;
       });
 
-      setRangeIndices(Object.keys(data.new_ranges)); // Установка индексов диапазонов
+      setRangeIndices(Object.keys(data.new_ranges));
     }
   }, [data]);
 
+  // Эффект для обновления состояния inputs при изменении данных
   useEffect(() => {
-    if (data && data.new_ranges) { // Проверка наличия данных и новых диапазонов
-      setInputs((prevInputs) => { // Установка новых входных данных
-        const newInputs = { ...prevInputs }; // Создание копии предыдущих входных данных
-        Object.keys(prevInputs).forEach((key) => { // Проход по ключам предыдущих входных данных
-          if (!data.new_ranges[key]) { // Если ключ отсутствует в новых диапазонах
-            delete newInputs[key]; // Удаление ключа из входных данных
+    if (data && data.new_ranges) {
+      setInputs((prevInputs) => {
+        const newInputs = { ...prevInputs };
+        Object.keys(prevInputs).forEach((key) => {
+          if (!data.new_ranges[key]) {
+            delete newInputs[key];
           }
         });
-        return newInputs; // Возвращение новых входных данных
+        return newInputs;
       });
 
-      setRangeIndices(Object.keys(data.new_ranges)); // Установка индексов диапазонов
+      setRangeIndices(Object.keys(data.new_ranges));
     }
-  }, [data]); // Зависимость от данных
+  }, [data]);
 
+  // Эффект для удаления информации из состояния inputs по removeInfo
   useEffect(() => {
-    if (removeInfo.mainIndex !== null && removeInfo.subIndex !== null) { // Проверка наличия значений mainIndex и subIndex
-      console.log(`remove`, removeInfo);
-      setInputs((prevInputs) => { // Установка новых входных данных
-        const newInputs = { ...prevInputs }; // Создание копии предыдущих входных данных
-        const { mainIndex, subIndex } = removeInfo; // Деструктуризация значений mainIndex и subIndex
+    if (removeInfo.mainIndex !== null && removeInfo.subIndex !== null) {
+      setInputs((prevInputs) => {
+        const newInputs = { ...prevInputs };
+        const { mainIndex, subIndex } = removeInfo;
 
-        if (newInputs[mainIndex] && Array.isArray(newInputs[mainIndex]) && newInputs[mainIndex][subIndex] !== undefined) { // Проверка наличия данных по индексам
-          newInputs[mainIndex].splice(subIndex, 1); // Удаление данных по индексу
+        if (newInputs[mainIndex] && Array.isArray(newInputs[mainIndex]) && newInputs[mainIndex][subIndex] !== undefined) {
+          newInputs[mainIndex].splice(subIndex, 1);
         }
 
         if (newInputs[mainIndex].length === 0) {
-          delete newInputs[mainIndex]; // Удаление ключа, если массив пустой
+          delete newInputs[mainIndex];
         }
 
-        return newInputs; // Возвращение новых входных данных
+        return newInputs;
       });
 
-      setRangeIndices((prevIndices) => { // Установка новых индексов диапазонов
-        const updatedIndices = [...prevIndices]; // Создание копии предыдущих индексов
-        if (updatedIndices[removeInfo.mainIndex] && Array.isArray(updatedIndices[removeInfo.mainIndex]) && updatedIndices[removeInfo.mainIndex][removeInfo.subIndex] !== undefined) { // Проверка наличия данных по индексам
-          updatedIndices[removeInfo.mainIndex].splice(removeInfo.subIndex, 1); // Удаление данных по индексу
-          if (updatedIndices[removeInfo.mainIndex].length === 0) { // Проверка пустоты массива по индексу
-            delete updatedIndices[removeInfo.mainIndex]; // Удаление пустого индекса
+      setRangeIndices((prevIndices) => {
+        const updatedIndices = [...prevIndices];
+        if (updatedIndices[removeInfo.mainIndex] && Array.isArray(updatedIndices[removeInfo.mainIndex]) && updatedIndices[removeInfo.mainIndex][removeInfo.subIndex] !== undefined) {
+          updatedIndices[removeInfo.mainIndex].splice(removeInfo.subIndex, 1);
+          if (updatedIndices[removeInfo.mainIndex].length === 0) {
+            delete updatedIndices[removeInfo.mainIndex];
           }
         }
-        return Object.keys(updatedIndices); // Возвращение ключей обновленных индексов
+        return Object.keys(updatedIndices);
       });
     }
-  }, [removeInfo]); // Зависимость от removeInfo
-
-  if (!data || !data.new_ranges) { // Проверка наличия данных и новых диапазонов
-    return null; // Возвращение null, если данных нет
+  }, [removeInfo]);
+  
+  if (!data || !data.new_ranges) {
+    return null;
   }
 
+  // Функция для обработки изменений в input полях
   const handleInputChange = (mainIndex, subIndex, field, value) => {
     const intValue = field === 'sats' ? parseInt(value, 10) : value;
-    setInputs((prevInputs) => { // Установка новых входных данных
-      const updatedInputs = { ...prevInputs }; // Создание копии предыдущих входных данных
-      if (!updatedInputs[mainIndex]) { // Если ключ отсутствует в предыдущих входных данных
-        updatedInputs[mainIndex] = []; // Инициализация массива для ключа
+    setInputs((prevInputs) => {
+      const updatedInputs = { ...prevInputs };
+      if (!updatedInputs[mainIndex]) {
+        updatedInputs[mainIndex] = [];
       }
-      if (!updatedInputs[mainIndex][subIndex]) { // Если индекс отсутствует в массиве
-        updatedInputs[mainIndex][subIndex] = { sats: '', address: '' }; // Инициализация данных по индексу
+      if (!updatedInputs[mainIndex][subIndex]) {
+        updatedInputs[mainIndex][subIndex] = { sats: '', address: '' };
       }
-      updatedInputs[mainIndex][subIndex][field] = intValue; // Обновление значения по полю
-      console.log(`sats`, updatedInputs[mainIndex][subIndex].sats);
+      updatedInputs[mainIndex][subIndex][field] = intValue;
 
-      // Обновление new_ranges в choice через addToRanges
-      const newRanges = updatedInputs[mainIndex].map(input => ({
-        min: input.min, // нужно чтобы мин и макс отображали индексы из разных ренж индексов или даже ютхо, если полученый инпут больше содержимого rangeindex
-        max: input.min + input.sats, // нужно
-        sats: input.sats,
-        address: input.address
-      }));
+      // Обновление диапазонов в зависимости от новых сатоши
+      if (field === 'sats') {
+        const newRanges = {};
+        let remainingSats = intValue;
+        let currentKey = parseInt(mainIndex);
+        let rangeCounter = 0;
 
-      addToRanges(dataKey, mainIndex, newRanges);
+        while (remainingSats > 0) {
+          const range = data.new_ranges[currentKey]?.[0] || data.sat_ranges[currentKey];
+          if (range) {
+            const rangeSize = range.max ? (range.max - range.min) : (range[1] - range[0]);
 
-      return updatedInputs; // Возвращение новых входных данных
+            if (remainingSats > rangeSize) {
+              newRanges[rangeCounter] = {
+                min: range.min || range[0],
+                max: range.max || range[1],
+                sats: rangeSize,
+              };
+              remainingSats -= rangeSize;
+              currentKey++;
+            } else {
+              newRanges[rangeCounter] = {
+                min: range.min || range[0],
+                max: (range.min || range[0]) + remainingSats,
+                sats: remainingSats,
+              };
+              remainingSats = 0;
+            }
+
+            rangeCounter++;
+          } else {
+            remainingSats = 0;
+          }
+        }
+
+        updatedInputs[mainIndex][subIndex] = {
+          ...updatedInputs[mainIndex][subIndex],
+          ranges: newRanges,
+          endRangeIndex: currentKey.toString(),
+        };
+      }
+
+      return updatedInputs;
     });
   };
 
   return (
     <div>
-      {rangeIndices.map((rangeIndex) => ( // Проход по индексам диапазонов
-        data.new_ranges[rangeIndex]?.map((range, subIndex) => ( // Проход по индексам новых диапазонов
-          <div key={`${rangeIndex}-${subIndex}`} className="relative"> {/* Установка ключа и класса для элемента */}
-            <div className="divide-solid divide-orange-600 divide-y flex border-4 bg-zinc-800 border-orange-600 p-2 rounded-xl mb-4 flex-col"> {/* Классы для стилизации */}
+      {rangeIndices.map((rangeIndex) => (
+        inputs[rangeIndex]?.map((range, subIndex) => (
+          <div key={`${rangeIndex}-${subIndex}`} className="relative">
+            <div className="divide-solid divide-orange-600 divide-y flex border-4 bg-zinc-800 border-orange-600 p-2 rounded-xl mb-4 flex-col">
+              {range.ranges && Object.keys(range.ranges).map((rangeKey) => (
+                <div key={`${rangeIndex}-${subIndex}-${rangeKey}`} className="mb-2">
+                  <div>Range {rangeKey}:</div>
+                  <div>Min: {range.ranges[rangeKey].min}</div>
+                  <div>Max: {range.ranges[rangeKey].max}</div>
+                  <div>Sats: {range.ranges[rangeKey].sats}</div>
+                </div>
+              ))}
               <input
                 className="text-center bg-zinc-800 text-white"
                 type="number"
                 placeholder="sats"
-                value={inputs[rangeIndex]?.[subIndex]?.sats || ''} // Значение для input поля
-                onChange={(e) => handleInputChange(rangeIndex, subIndex, 'sats', e.target.value)} // Обработчик изменения значения
+                value={inputs[rangeIndex]?.[subIndex]?.sats || ''}
+                onChange={(e) => handleInputChange(rangeIndex, subIndex, 'sats', e.target.value)}
               />
               <input
                 className="text-center bg-zinc-800 text-white"
                 type="text"
                 placeholder="address"
-                value={inputs[rangeIndex]?.[subIndex]?.address || ''} // Значение для input поля
-                onChange={(e) => handleInputChange(rangeIndex, subIndex, 'address', e.target.value)} // Обработчик изменения значения
+                value={inputs[rangeIndex]?.[subIndex]?.address || ''}
+                onChange={(e) => handleInputChange(rangeIndex, subIndex, 'address', e.target.value)}
               />
             </div>
           </div>
@@ -139,4 +237,4 @@ export function RangeOutput({ dataKey, removeInfo }) {
   );
 }
 
-export default RangeOutput; // Экспорт компонента по умолчанию
+export default RangeOutput;

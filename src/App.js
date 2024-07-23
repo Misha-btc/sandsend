@@ -9,7 +9,6 @@ function App() {
   return (
       <React.StrictMode>
         <Header />
-
               <AddUtxo />
               <CreateTransaction />
               <TransactionCanvas />

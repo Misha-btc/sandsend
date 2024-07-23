@@ -16,12 +16,6 @@ export function RangeInput({ dataKey, children, rangeIndex, setRemoveInfo }) {
     return contextRanges.length > 0 ? contextRanges : [];
   });
 
-  const [rangeValue, setRangeValue] = useState(() => {
-    const contextRangeValue = choice[dataKey]?.rangeValue?.[rangeIndex] || 0;
-    return contextRangeValue;
-  });
-  console.log(`rangeValue`, rangeValue);
-
   const [warning, setWarning] = useState(''); // Состояние для хранения предупреждений
   const [tr2RangeLimit, setTr2RangeLimit] = useState(0); // Состояние для хранения лимита диапазонов
 
@@ -62,17 +56,6 @@ export function RangeInput({ dataKey, children, rangeIndex, setRemoveInfo }) {
     }
     localStorage.setItem(`ranges-${dataKey}-${rangeIndex}`, JSON.stringify(ranges)); // Сохранение в localStorage
   }, [ranges, dataKey, rangeIndex, addToRanges, removeFromRanges]);
-
-  // Эффект для обновления состояния ranges при изменении контекста
-  useEffect(() => {
-    const contextRanges = choice[dataKey]?.new_ranges?.[rangeIndex] || [];
-    if (JSON.stringify(contextRanges) !== JSON.stringify(ranges)) {
-      setRanges(contextRanges);
-    }
-    const contextRangeValue = choice[dataKey]?.rangeValue?.[rangeIndex] || 0;
-    const totalSats = contextRanges.reduce((total, range) => total + (range.sats || 0), 0);
-    setRangeValue(contextRangeValue - totalSats);
-  }, [choice, dataKey, rangeIndex]);
 
   // Обработчик изменения минимального значения диапазона
   const handleMinChange = (index) => (event) => {
@@ -209,7 +192,7 @@ export function RangeInput({ dataKey, children, rangeIndex, setRemoveInfo }) {
           <span className="cursor-pointer text-zinc-800 hover:text-zinc-950" onClick={() => handleClick(1)}> {children[1]} </span>
           <span className="ml-4 rounded-full border w-6 h-6 border-black mr-4"> {defaultValue}</span>
           {tr2RangeLimit}
-          <div className="flex-col justify-cente items-center flex bg-zinc-950 border-orange-600 border-2 text-white rounded-full text-xs pb-px w-14 h-6 ml-2 grow hover:bg-zinc-950"><span>{rangeValue}</span></div>
+          <div className="flex-col justify-cente items-center flex bg-zinc-950 border-orange-600 border-2 text-white rounded-full text-xs pb-px w-14 h-6 ml-2 grow hover:bg-zinc-950"><span>000</span></div>
         </div>
         {ranges.length === 0 ? null : ranges.map((range, index) => (
           <div key={index} className="relative mb-4 border-zinc-950 border-4 rounded-xl bg-zinc-800 text-white px-4 pb-4 pt-2 mt-4">

@@ -4,13 +4,15 @@ import './tailwind.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { ChoiceProvider } from './Contexts/ChosenUtxo';
-
+import { InputsProvider } from './Contexts/InputsContext';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <ChoiceProvider>
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
+    <InputsProvider>
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>
+    </InputsProvider>
   </ChoiceProvider>
 );
 
