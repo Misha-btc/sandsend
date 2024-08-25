@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Button from '../Button';
 import Modal from '../Modal/Modal';
 import ModalHeader from '../Modal/ModalHeader';
-import SettingRanges from './SettingRanges';
 
 const InputElement = ({ utxoKey }) => {
   const [showUtxo, setShowUtxo] = useState(false);
@@ -17,7 +16,6 @@ const InputElement = ({ utxoKey }) => {
         />
         <Modal show={showUtxo} onClose={() => setShowUtxo(false)}>
           <ModalHeader title='sat ranges'/>
-          <SettingRanges dataKey={utxoKey} />
         </Modal>
       </div>
     </>

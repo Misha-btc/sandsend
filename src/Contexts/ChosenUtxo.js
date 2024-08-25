@@ -11,16 +11,6 @@ export const ChoiceProvider = ({ children }) => {
   });
 
   const addToChoice = (utxo, detail) => {
-    const rangeValue = {};
-    
-    if (detail.sat_ranges) {
-      detail.sat_ranges.forEach((range, index) => {
-        rangeValue[index] = range[1] - range[0];
-      });
-    }
-
-    detail.rangeValue = rangeValue;
-
     setChoice(prevChoice => {
       const newChoice = { ...prevChoice, [utxo]: detail };
       localStorage.setItem('choice', JSON.stringify(newChoice));

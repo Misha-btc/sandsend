@@ -192,7 +192,7 @@ export function RangeInput({ dataKey, children, rangeIndex, setRemoveInfo }) {
           <span className="cursor-pointer text-zinc-800 hover:text-zinc-950" onClick={() => handleClick(1)}> {children[1]} </span>
           <span className="ml-4 rounded-full border w-6 h-6 border-black mr-4"> {defaultValue}</span>
           {tr2RangeLimit}
-          <div className="flex-col justify-cente items-center flex bg-zinc-950 border-orange-600 border-2 text-white rounded-full text-xs pb-px w-14 h-6 ml-2 grow hover:bg-zinc-950"><span>000</span></div>
+          <div className="flex-col justify-cente items-center flex bg-zinc-950 border-orange-600 border-2 text-white rounded-full text-xs pb-px w-14 h-6 ml-2 grow hover:bg-zinc-950"><span>хуй</span></div>
         </div>
         {ranges.length === 0 ? null : ranges.map((range, index) => (
           <div key={index} className="relative mb-4 border-zinc-950 border-4 rounded-xl bg-zinc-800 text-white px-4 pb-4 pt-2 mt-4">

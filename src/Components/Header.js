@@ -2,7 +2,6 @@ import React from 'react';
 import Button from './Button';
 import useConnectWallet from '../Hooks/useConnectWallet';
 import '../index.css'
-import logo from '../icons/logo.png'
 
 function Header() {
   const connectWallet = useConnectWallet();

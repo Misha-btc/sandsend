@@ -5,21 +5,20 @@ import AddressButton from './AddressButton';
 
 function YourUtxo() {
     const url = 'https://mainnet.sandshrew.io/v1/8f32211e11c25c2f0b5084e41970347d';
-    const [walletAddresses, setWalletAddresses] = useState({});
-    const [addressPurpose, setAddressPurpose] = useState('ordinals');
-    
 
     // Используем кастомный хук для получения UTXO и деталей транзакций
     const { loading, transactionDetails } = useFetchUtxos(url);
-
+    
+    const [addressPurpose, setAddressPurpose] = useState('');
     // Используем контекст для управления выбранными UTXO
     const { choice, addToChoice, removeFromChoice } = useChoice();
 
-    // Извлекаем адреса из localStorage при монтировании компонента
     useEffect(() => {
-        const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
-        setWalletAddresses(storedAddresses);
-    }, []);
+        const addressType = Object.keys(transactionDetails);
+        if (addressType.length > 0 && !addressPurpose) {
+            setAddressPurpose(addressType[0]);
+        }
+    }, [transactionDetails, addressPurpose]);
 
     // Проверяем, выбран ли UTXO
     const isChosen = (key) => {
@@ -46,9 +45,10 @@ function YourUtxo() {
         }
     };
     const filteredTransactionDetails = transactionDetails[addressPurpose] || {};
+    const [, type] = addressPurpose !== '' ? addressPurpose.split(':') : ['', ''];
 
     const toggleAddressPurpose = () => {
-        const purposes = Object.keys(walletAddresses);
+        const purposes = Object.keys(transactionDetails);
         const currentIndex = purposes.indexOf(addressPurpose);
         const nextIndex = (currentIndex + 1) % purposes.length;
         setAddressPurpose(purposes[nextIndex]);
@@ -59,7 +59,7 @@ function YourUtxo() {
             {/* Заголовок */}
             <div className='flex items-center border-b p-2 bg-black text-white sticky top-0 z-10 font-black text-xl'>
                 <div className='w-full text-center'>my UTXOs</div> {/* Заголовок по центру */}
-                <AddressButton addressType={addressPurpose} onClick={toggleAddressPurpose} />
+                <AddressButton addressType={type} onClick={toggleAddressPurpose} />
             </div>
             {/* Список UTXO */}
             <div className="">
@@ -76,8 +76,6 @@ function YourUtxo() {
                                     onClick={() => handleUtxoClick(key, detail)} // Обработчик клика
                                 >
                                     <p className='text-xs'>utxo: {key}</p> {/* Отображение ключа UTXO */}
-                                    <p>Block: {detail?.status?.block_height || 'N/A'}</p> {/* Отображение блока */}
-                                    <p>Confirmed: {detail?.status?.confirmed ? 'Yes' : 'No'}</p> {/* Отображение подтверждения */}
                                     <p>Value: {detail?.value || 'N/A'}</p> {/* Отображение значения */}
                                     {detail?.sat_ranges && Array.isArray(detail.sat_ranges) && ( /* Отображение диапазонов сатоши */
                                         <div className="mt-2">
@@ -86,6 +84,9 @@ function YourUtxo() {
                                             ))}</p>
                                             <p>Inscriptions: {detail.inscriptions && Array.isArray(detail.inscriptions) ? detail.inscriptions.map((inscription, i) => (
                                                 <li key={i}>[{inscription}]</li> /* Отображение подписей */
+                                            )) : 'N/A'}</p>
+                                            <p>runes: {detail.runes && Array.isArray(detail.runes) ? detail.runes.map((rune, i) => (
+                                                <li key={i}>[{rune}]</li> /* Отображение подписей */
                                             )) : 'N/A'}</p>
                                         </div>
                                     )}

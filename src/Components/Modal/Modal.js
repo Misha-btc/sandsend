@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTransition, animated } from '@react-spring/web';
 
-const Modal = ({ show, onClose, children }) => {
+const Modal = ({ show, onClose, className, children }) => {
   const transition = useTransition(show, {
     from: {
       scale: 0.98,
@@ -47,7 +47,7 @@ const Modal = ({ show, onClose, children }) => {
         item && (
           <animated.div
             style={style}
-            className='border-0.1 rounded-xl fixed inset-3px justify-center items-top bg-white z-50 shadow-3xl max-h-3/4 overflow-auto'
+            className={`border-0.1 rounded-xl fixed ${className} justify-center items-top bg-white z-50 shadow-3xl overflow-auto`}
           >
             {children}
           </animated.div>

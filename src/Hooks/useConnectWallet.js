@@ -41,6 +41,7 @@ const useConnectWallet = () => {
 
         // Сохраняем объект walletAddresses в localStorage
         localStorage.setItem('walletAddresses', JSON.stringify(walletAddresses));
+        console.log('CONNECT Wallet', walletAddresses)
 
       } else {
         // Обработка ошибок, если запрос не удался

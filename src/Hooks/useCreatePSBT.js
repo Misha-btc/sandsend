@@ -29,7 +29,7 @@ const useCreatePSBT = () => {
           amount: BigInt(input.value),
         },
         tapInternalKey: internalPubKey,
-        sighashType: btc.SigHash.SINGLE_ANYONECANPAY
+        sighashType: btc.SigHash.SINGLE_ALL
       });
     });
 
