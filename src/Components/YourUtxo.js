@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useFetchUtxos from '../Hooks/useFetchUtxos'; // Импортируем кастомный хук для получения UTXO
 import { useChoice } from '../Contexts/ChosenUtxo'; // Импортируем хук для использования контекста выбора UTXO
 import AddressButton from './AddressButton';
+import { useTransaction } from '../Hooks/TransactionContext';
 
 function YourUtxo() {
     const url = 'https://mainnet.sandshrew.io/v1/8f32211e11c25c2f0b5084e41970347d';
@@ -12,6 +13,8 @@ function YourUtxo() {
     const [addressPurpose, setAddressPurpose] = useState('');
     // Используем контекст для управления выбранными UTXO
     const { choice, addToChoice, removeFromChoice } = useChoice();
+
+    const { updateInput, removeInput } = useTransaction();
 
     useEffect(() => {
         const addressType = Object.keys(transactionDetails);
@@ -27,11 +30,14 @@ function YourUtxo() {
 
     // Обрабатываем клик на UTXO
     const handleUtxoClick = (key, detail) => {
+        const [txid,vout] = key.split(':');
         if (isChosen(key)) {
-            removeFromChoice(key); // Удаляем UTXO из выбора, если он уже выбран
+            removeFromChoice(key);
             removeFromLocalStorage(key);
+            removeInput(key);
         } else {
-            addToChoice(key, detail); // Добавляем UTXO в выбор, если он не выбран
+            addToChoice(key, detail);
+            updateInput({ txid: txid, vout: vout, value: detail.value });
         }
     };
     const removeFromLocalStorage = (key) => {

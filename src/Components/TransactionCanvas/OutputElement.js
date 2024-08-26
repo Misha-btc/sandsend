@@ -1,55 +1,19 @@
-import React, { useState } from 'react';
-import Button from '../Button'; // Импорт кнопки
-import Modal from '../Modal/Modal'; // Импорт модального окна
-import ModalHeader from '../Modal/ModalHeader'; // Импорт заголовка модального окна
+import React from 'react';
 
-// Компонент OutputElement отображает информацию о диапазоне (range) и модальное окно с деталями
-const OutputElement = ({ range }) => {
-  const [showUtxo, setShowUtxo] = useState(false); // Состояние для управления отображением модального окна
-
-  // Функция для получения заголовка на основе range
-  const getTitle = () => {
-    if (range && range.address && range.sats) {
-      // Если есть адрес и количество сатоши, возвращает обрезанный адрес
-      return `${range.address.slice(0, 3)}...${range.address.slice(-7)}`;
-    }
-    if (!range.address && range.sats) {
-      // Если нет адреса, но есть сатоши, возвращает 'No address'
-      return 'No address';
-    }
-    if (range.address && !range.sats) {
-      // Если есть адрес, но нет сатоши, возвращает 'No range'
-      return 'No range';
-    }
-    return null; // В противном случае возвращает null
-  };
-
-  const title = getTitle(); // Получение заголовка для кнопки
-
-  if (!title) {
-    return null; // Если заголовка нет, компонент не отображается
-  }
-
+const OutputElement = ({ output, index, removeOutput }) => {
   return (
-    <>
-      <div>
-        <Button
-          onClick={() => setShowUtxo(!showUtxo)} // Переключение состояния отображения модального окна
-          className={`rounded-xl mt-10 z-10 relative w-32 h-12 ${title === 'No address' ? 'bg-gray-400' : 'bg-orange-600'} text-white hover:bg-orange-700 shadow-md hover:drop-shadow-xl`}
-          title={title} // Установка заголовка кнопки
-        />
-      
-        <Modal show={showUtxo} onClose={() => setShowUtxo(false)}> {/* Управление отображением модального окна */}
-          <ModalHeader title='OUTPUT' /> {/* Заголовок модального окна */}
-          <div>
-            {range.min && <p>Min: {range.min}</p>} {/* Отображение минимального значения диапазона, если оно есть */}
-            {range.max && <p>Max: {range.max}</p>} {/* Отображение максимального значения диапазона, если оно есть */}
-            {range.sats && <p>Sats: {range.sats}</p>} {/* Отображение количества сатоши, если оно есть */}
-            {range.address && <p>Address: {range.address}</p>} {/* Отображение адреса, если он есть */}
-          </div>
-        </Modal>
-      </div>
-    </>
+    <div className="bg-zinc-800 p-4 rounded-lg shadow-md mb-4 relative border-2 border-orange-600">
+      <button
+        onClick={() => removeOutput(index)}
+        className="absolute top-2 right-2 text-gray-500 hover:text-white"
+      >
+        ✕
+      </button>
+      <p className="text-white mb-2">Адрес: {output.address}</p>
+      <p className="text-white">
+        Сумма: {output.amount} {output.satsFormat}
+      </p>
+    </div>
   );
 };
 

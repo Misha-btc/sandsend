@@ -5,17 +5,20 @@ import AddUtxo from './Components/AddUtxo';
 import TransactionCanvas from './Components/TransactionCanvas/TransactionCanvas';
 import CreateTransaction from './Components/TransactionCanvas/CreateTransaction';
 import AddRecipient from './Components/AddRecipient';
+import { TransactionProvider } from './Hooks/TransactionContext';
 
 function App() {
   return (
-      <React.StrictMode>
+    <React.StrictMode>
+      <TransactionProvider>
         <Header />
-              <AddUtxo />
-              <AddRecipient />
-              <CreateTransaction />
-              <TransactionCanvas />
+        <AddUtxo />
+        <AddRecipient />
+        <CreateTransaction />
+        <TransactionCanvas />
         <Footer />
-      </React.StrictMode>
+      </TransactionProvider>
+    </React.StrictMode>
   );
 }
 

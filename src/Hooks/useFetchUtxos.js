@@ -9,6 +9,7 @@ const useFetchUtxos = (url) => {
     const [loading, setLoading] = useState(false);
     // Состояние для хранения деталей транзакций (ordinals и payment)
     const [transactionDetails, setTransactionDetails] = useState({});
+
     
     // Функция для получения UTXO по адресам
     const fetchUtxos = useCallback(() => {

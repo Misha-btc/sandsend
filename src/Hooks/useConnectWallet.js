@@ -1,9 +1,11 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { request, AddressPurpose, RpcErrorCode } from 'sats-connect';
 
 // Кастомный хук для подключения кошелька
 const useConnectWallet = () => {
-  // Используем useCallback для мемоизации функции connectWallet
+  const [isConnected, setIsConnected] = useState(false);
+  const [paymentAddress, setPaymentAddress] = useState('');
+
   const connectWallet = useCallback(async () => {
     try {
       // Опции для запроса доступа к кошельку
@@ -33,6 +35,7 @@ const useConnectWallet = () => {
         // Сохраняем найденные адреса в объекте walletAddresses
         if (paymentAddressItem) {
           walletAddresses[AddressPurpose.Payment] = paymentAddressItem;
+          setPaymentAddress(paymentAddressItem.address);
         }
 
         if (ordinalsAddressItem) {
@@ -41,8 +44,8 @@ const useConnectWallet = () => {
 
         // Сохраняем объект walletAddresses в localStorage
         localStorage.setItem('walletAddresses', JSON.stringify(walletAddresses));
+        setIsConnected(true);
         console.log('CONNECT Wallet', walletAddresses)
-
       } else {
         // Обработка ошибок, если запрос не удался
         if (response.error.code === RpcErrorCode.USER_REJECTION) {
@@ -58,7 +61,7 @@ const useConnectWallet = () => {
   }, []); // Мемоизация функции, зависимость - пустой массив, чтобы функция создавалась один раз
 
   // Возвращаем функцию connectWallet для использования в компонентах
-  return connectWallet;
+  return { connectWallet, isConnected, paymentAddress };
 };
 
 export default useConnectWallet; // Экспортируем хук для использования в других частях приложения

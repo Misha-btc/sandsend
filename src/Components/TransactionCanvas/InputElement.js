@@ -1,24 +1,18 @@
-import React, { useState } from 'react';
-import Button from '../Button';
-import Modal from '../Modal/Modal';
-import ModalHeader from '../Modal/ModalHeader';
+import React from 'react';
 
-const InputElement = ({ utxoKey }) => {
-  const [showUtxo, setShowUtxo] = useState(false);
-
+const InputElement = ({ input, index, removeInput }) => {
   return (
-    <>
-      <div>
-        <Button 
-          onClick={() => setShowUtxo(!showUtxo)} 
-          className='mt-10 rounded-xl hover:bg-zinc-300 z-10 relative bg-zinc-200 text-black p-3 w-32 h-12 shadow-md hover:drop-shadow-xl' 
-          title={`${utxoKey.slice(0, 3)}...${utxoKey.slice(-6)}`} 
-        />
-        <Modal show={showUtxo} onClose={() => setShowUtxo(false)}>
-          <ModalHeader title='sat ranges'/>
-        </Modal>
-      </div>
-    </>
+    <div className="bg-zinc-800 p-4 rounded-lg shadow-md mb-4 relative border-2 border-orange-600">
+      <button
+        onClick={() => removeInput(index)}
+        className="absolute top-2 right-2 text-gray-500 hover:text-white"
+      >
+        ✕
+      </button>
+      <p className="text-white p-2">
+        {input.value} sats
+      </p>
+    </div>
   );
 };
 

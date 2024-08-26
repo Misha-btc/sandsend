@@ -47,7 +47,7 @@ const Modal = ({ show, onClose, className, children }) => {
         item && (
           <animated.div
             style={style}
-            className={`border-0.1 rounded-xl fixed ${className} justify-center items-top bg-white z-50 shadow-3xl overflow-auto`}
+            className={`border-0.1 fixed ${className} justify-center items-top bg-white z-50 shadow-3xl overflow-auto`}
           >
             {children}
           </animated.div>
