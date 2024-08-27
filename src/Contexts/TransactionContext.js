@@ -58,7 +58,8 @@ export const TransactionProvider = ({ children }) => {
         txid: utxoKey.split(':')[0],
         vout: parseInt(utxoKey.split(':')[1]),
         key: utxoKey
-      })));
+      })))
+      .sort((a, b) => a.value - b.value);
 
     for (const utxo of utxosArray) {
       selectedUtxos.push(utxo);
