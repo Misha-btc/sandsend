@@ -5,19 +5,22 @@ import AddUtxo from './Components/AddUtxo';
 import TransactionCanvas from './Components/TransactionCanvas/TransactionCanvas';
 import CreateTransaction from './Components/TransactionCanvas/CreateTransaction';
 import AddRecipient from './Components/AddRecipient';
-import { TransactionProvider } from './Hooks/TransactionContext';
+import { TransactionProvider } from './Contexts/TransactionContext';
+import { WalletProvider } from './Contexts/WalletContext';
 
 function App() {
   return (
     <React.StrictMode>
-      <TransactionProvider>
-        <Header />
-        <AddUtxo />
-        <AddRecipient />
-        <CreateTransaction />
-        <TransactionCanvas />
-        <Footer />
-      </TransactionProvider>
+      <WalletProvider>
+        <TransactionProvider>
+          <Header />
+          <AddUtxo />
+          <AddRecipient />
+          <CreateTransaction />
+          <TransactionCanvas />
+          <Footer />
+        </TransactionProvider>
+      </WalletProvider>
     </React.StrictMode>
   );
 }

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import useFetchUtxos from '../Hooks/useFetchUtxos'; // Импортируем кастомный хук для получения UTXO
 import { useChoice } from '../Contexts/ChosenUtxo'; // Импортируем хук для использования контекста выбора UTXO
 import AddressButton from './AddressButton';
-import { useTransaction } from '../Hooks/TransactionContext';
+import { useTransaction } from '../Contexts/TransactionContext';
 
 function YourUtxo() {
     const url = 'https://mainnet.sandshrew.io/v1/8f32211e11c25c2f0b5084e41970347d';

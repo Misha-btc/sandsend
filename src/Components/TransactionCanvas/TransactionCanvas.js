@@ -1,7 +1,9 @@
 import React from 'react';
-import { useTransaction } from '../../Hooks/TransactionContext';
+import { useTransaction } from '../../Contexts/TransactionContext';
 import OutputElement from './OutputElement';
 import InputElement from './InputElement';
+
+
 function TransactionCanvas() {
   const { outputs, removeOutput, input, removeInput } = useTransaction();
 

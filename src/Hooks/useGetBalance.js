@@ -1,16 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { key, sandshrewMainnet } from '../keystore';
 import axios from 'axios';
+import { useWallet } from '../Contexts/WalletContext';
 
-const useGetBalance = (addressName) => {
-  const [balance, setBalance] = useState(0);
+const useGetBalance = () => {
+  const { paymentAddress } = useWallet();
 
   const fetchBalance = useCallback(async () => {
-
     try {
-      const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
-      const paymentAddress = storedAddresses.payment?.address;
-
       if (!paymentAddress) {
         throw new Error('Адрес для платежей не найден');
       }
@@ -35,20 +32,17 @@ const useGetBalance = (addressName) => {
         const totalSpent = chainStats.spent_txo_sum;
         const currentBalance = totalReceived - totalSpent;
 
-        setBalance(currentBalance);
+        return currentBalance;
       } else {
         throw new Error('Не удалось получить данные баланса');
       }
     } catch (error) {
       console.error('Ошибка при получении баланса:', error);
+      return 0;
     }
-  }, []);
+  }, [paymentAddress]);
 
-  useEffect(() => {
-    fetchBalance();
-  }, [fetchBalance]);
-
-  return { balance, fetchBalance };
+  return { fetchBalance };
 };
 
 export default useGetBalance;

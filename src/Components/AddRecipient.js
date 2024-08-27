@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
 import Modal from './Modal/Modal';
 import Button from './Button';
-import { useTransaction } from '../Hooks/TransactionContext';
-
+import { useTransaction } from '../Contexts/TransactionContext';
+import { useWallet } from '../Contexts/WalletContext';
 
 const AddRecipient = () => {
   const [showModal, setShowModal] = useState(false);
-  const [satsFormat, setFormat] = useState('btc');
+  const [satsFormat, setFormat] = useState('sats');
+  const txFormat = 'sats';
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
+  const [txAmount, setTxAmount] = useState(0);
   const [error, setError] = useState('');
   const { updateOutput } = useTransaction();
-  
+  const { isConnected, connectWallet, balance } = useWallet();
+
   function handleAddressChange(e) {
     const newValue = e.target.value;
     const regex = /^[A-Za-z0-9]{0,74}$/;
@@ -25,21 +28,44 @@ const AddRecipient = () => {
   }
 
   function handleAmountChange(e) {
+    if (satsFormat === 'sats') {
+      if (balance < e.target.value) {
+        setError('недостаточно средств');
+        return;
+      }
+      setTxAmount(Number(e.target.value));
+      setError('');
+    } else {
+      const amount = e.target.value * 100000000;
+      if (amount > balance) {
+        setError('недостаточно средств');
+        return;
+      }
+      setTxAmount(Number(amount));
+      setError('');
+    }
     setAmount(e.target.value);
   }
 
   function handleSubmit() {
     if (address && amount) {
-      updateOutput({'address':address, 'amount':amount, 'satsFormat':satsFormat});
+      updateOutput({'address':address, 'amount':txAmount, 'satsFormat': txFormat});
       setShowModal(false);
       setAddress('');
       setAmount('');
-      setFormat('btc');
+      setFormat('sats');
       setError('');
     } else {
       setError('Пожалуйста, заполните все поля');
     }
   }
+
+  const handleConnectWallet = async () => {
+    // Здесь должна быть логика подключения кошелька
+    // После успешного подключения:
+    const walletAddress = 'полученный_адрес_кошелька';
+    connectWallet(walletAddress);
+  };
 
   return (
     <>
@@ -53,7 +79,17 @@ const AddRecipient = () => {
       <Modal show={showModal} onClose={() => setShowModal(false)}
         className="fixed top-24 right-8 bg-white border-4 border-orange-600 rounded-xl">
         <div className="p-4">
-          <h2 className="text-lg font-bold mb-4">add recipient</h2>
+          <div className="flex justify-between mb-4">
+            <h2 className="text-lg font-bold">add recipient</h2>
+            <h2 className="text-xs font-bold">{balance} sats</h2>
+          </div>
+          {!isConnected && (
+            <Button
+              onClick={handleConnectWallet}
+              title="Подключить кошелек"
+              className="mb-4 w-full bg-blue-500 text-white p-2 rounded"
+            />
+          )}
           <div className="mb-4">
             <label htmlFor="recipientAddress" className="block text-sm font-medium text-gray-700 mb-1">
               address

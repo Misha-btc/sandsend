@@ -13,7 +13,7 @@ const AddUtxo = () => {
         title="UTXOs" 
         className='fixed rounded-full text-white bg-zinc-900 border-zinc-200 border-4 text-sm leading-none w-16 h-16 top-20 left-5 hover:text-white hover:bg-zinc-950 z-10 items-center justify-center'
       />
-      <Modal show={showUtxo} onClose={() => setShowUtxo(false)} className='inset-3px max-h-3/4'>
+      <Modal show={showUtxo} onClose={() => setShowUtxo(false)} className='inset-3px rounded-xl max-h-3/4'>
         <YourUtxo />
       </Modal>
     </>

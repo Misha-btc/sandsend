@@ -1,67 +1,58 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { request, AddressPurpose, RpcErrorCode } from 'sats-connect';
 
 // Кастомный хук для подключения кошелька
 const useConnectWallet = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [paymentAddress, setPaymentAddress] = useState('');
-
   const connectWallet = useCallback(async () => {
     try {
-      // Опции для запроса доступа к кошельку
       const options = {
-        purposes: ['payment', 'ordinals'], // Запрашиваем доступ к адресам для платежей и ordinals
-        message: "We need access to your wallet addresses to proceed.", // Сообщение, отображаемое пользователю при запросе доступа
+        purposes: ['payment', 'ordinals'],
+        message: "We need access to your wallet addresses to proceed.",
       };
 
-      // Выполняем запрос к кошельку с использованием библиотеки sats-connect
       const response = await request('getAccounts', options);
 
-      // Проверяем статус ответа
       if (response.status === 'success') {
-        // Создаем объект для хранения адресов
         const walletAddresses = {};
 
-        // Ищем адрес для платежей среди результатов
         const paymentAddressItem = response.result.find(
           (address) => address.purpose === AddressPurpose.Payment
         );
 
-        // Ищем адрес для ordinals среди результатов
         const ordinalsAddressItem = response.result.find(
           (address) => address.purpose === AddressPurpose.Ordinals
         );
 
-        // Сохраняем найденные адреса в объекте walletAddresses
         if (paymentAddressItem) {
           walletAddresses[AddressPurpose.Payment] = paymentAddressItem;
-          setPaymentAddress(paymentAddressItem.address);
         }
 
         if (ordinalsAddressItem) {
           walletAddresses[AddressPurpose.Ordinals] = ordinalsAddressItem;
         }
 
-        // Сохраняем объект walletAddresses в localStorage
         localStorage.setItem('walletAddresses', JSON.stringify(walletAddresses));
-        setIsConnected(true);
-        console.log('CONNECT Wallet', walletAddresses)
+        console.log('CONNECT Wallet', walletAddresses);
+
+        return { 
+          success: true, 
+          paymentAddress: paymentAddressItem ? paymentAddressItem.address : null 
+        };
       } else {
-        // Обработка ошибок, если запрос не удался
         if (response.error.code === RpcErrorCode.USER_REJECTION) {
-          console.error('User canceled the request'); // Логируем ошибку отмены пользователем
+          console.error('User canceled the request');
         } else {
-          console.error('Error:', response.error.message); // Логируем другие ошибки
+          console.error('Error:', response.error.message);
         }
+        return { success: false, error: response.error.message };
       }
     } catch (err) {
-      // Обработка исключений, возникших при выполнении запроса
-      alert(err.message); // Выводим сообщение об ошибке
+      console.error('Error connecting wallet:', err);
+      return { success: false, error: err.message };
     }
-  }, []); // Мемоизация функции, зависимость - пустой массив, чтобы функция создавалась один раз
+  }, []);
 
-  // Возвращаем функцию connectWallet для использования в компонентах
-  return { connectWallet, isConnected, paymentAddress };
+  return { connectWallet };
 };
 
-export default useConnectWallet; // Экспортируем хук для использования в других частях приложения
+export default useConnectWallet;
