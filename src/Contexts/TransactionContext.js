@@ -7,6 +7,7 @@ export const TransactionProvider = ({ children }) => {
   const [outputs, setOutputs] = useState([]);
   const [fee, setFee] = useState('');
   const [rawTx, setRawTx] = useState('');
+  const [change, setChange] = useState(0);
   console.log('input',input);
   console.log('outputs',outputs);
 
@@ -39,7 +40,37 @@ export const TransactionProvider = ({ children }) => {
     });
   }, []);
 
+  const createEmptyOutput = useCallback(() => {
+    if (input.length > 0 && outputs.length === 0) {
+      const newOutput = {
+        address: '',
+        amount: 0,
+        satsFormat: 'sats',
+        status: 'pending'
+      };
+      setOutputs([newOutput]);
+    }
+  }, [input, outputs]);
+
+  useEffect(() => {
+    createEmptyOutput();
+  }, [input, createEmptyOutput]);
+
   
+  const balance_inputs_outputs = useCallback(() => {
+    const sum_inputs = input.reduce((sum, input) => sum + input.value, 0);
+    const sum_outputs = outputs.reduce((sum, output) => sum + output.amount, 0);
+    console.log('sum_inputs', sum_inputs);
+    const difference = Math.max(sum_inputs - sum_outputs, 0);
+    setChange(difference);
+    return difference;
+  }, [input, outputs, setChange]);
+
+  useEffect(() => {
+    balance_inputs_outputs();
+  }, [input, outputs, balance_inputs_outputs]);
+
+
   const selectOptimalUtxo = useCallback(() => {
     const storedDetails = localStorage.getItem('transactionDetails');
     if (!storedDetails) return;
@@ -59,7 +90,7 @@ export const TransactionProvider = ({ children }) => {
         vout: parseInt(utxoKey.split(':')[1]),
         key: utxoKey
       })))
-      .sort((a, b) => a.value - b.value);
+      .sort((a, b) => b.value - a.value);
 
     for (const utxo of utxosArray) {
       selectedUtxos.push(utxo);
@@ -69,6 +100,7 @@ export const TransactionProvider = ({ children }) => {
 
     if (selectedAmount >= totalOutputAmount) {
       setInput(selectedUtxos);
+      
     } else {
       console.log('Недостаточно UTXO для покрытия суммы');
     }
@@ -77,14 +109,23 @@ export const TransactionProvider = ({ children }) => {
   useEffect(() => {
     if (outputs.length > 0) {
       selectOptimalUtxo();
+    } else {
+      setInput([]);
     }
   }, [outputs, selectOptimalUtxo]);
+
+  const updateSpecificOutput = useCallback((index, newOutputData) => {
+    setOutputs(prevOutputs => prevOutputs.map((output, i) => 
+      i === index ? { ...output, ...newOutputData } : output
+    ));
+  }, []);
 
   return (
     <TransactionContext.Provider value={{
       input,
       outputs,
       fee,
+      change,
       rawTx,
       updateInput,
       updateOutput,
@@ -92,10 +133,10 @@ export const TransactionProvider = ({ children }) => {
       createRawTransaction,
       removeOutput,
       removeInput,
+      updateSpecificOutput,
     }}>
       {children}
     </TransactionContext.Provider>
   );
 };
-
 export const useTransaction = () => useContext(TransactionContext);

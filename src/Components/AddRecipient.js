@@ -1,70 +1,31 @@
 import React, { useState } from 'react';
 import Modal from './Modal/Modal';
 import Button from './Button';
-import { useTransaction } from '../Contexts/TransactionContext';
 import { useWallet } from '../Contexts/WalletContext';
+import { useAddRecipient } from '../Hooks/useAddRecipient';
 
 const AddRecipient = () => {
   const [showModal, setShowModal] = useState(false);
-  const [satsFormat, setFormat] = useState('sats');
-  const txFormat = 'sats';
-  const [address, setAddress] = useState('');
-  const [amount, setAmount] = useState('');
-  const [txAmount, setTxAmount] = useState(0);
-  const [error, setError] = useState('');
-  const { updateOutput } = useTransaction();
   const { isConnected, connectWallet, balance } = useWallet();
-
-  function handleAddressChange(e) {
-    const newValue = e.target.value;
-    const regex = /^[A-Za-z0-9]{0,74}$/;
-
-    if (regex.test(newValue)) {
-      setAddress(newValue);
-      setError('');
-    } else {
-      setError('неправильный адрес');
-    }
-  }
-
-  function handleAmountChange(e) {
-    if (satsFormat === 'sats') {
-      if (balance < e.target.value) {
-        setError('недостаточно средств');
-        return;
-      }
-      setTxAmount(Number(e.target.value));
-      setError('');
-    } else {
-      const amount = e.target.value * 100000000;
-      if (amount > balance) {
-        setError('недостаточно средств');
-        return;
-      }
-      setTxAmount(Number(amount));
-      setError('');
-    }
-    setAmount(e.target.value);
-  }
-
-  function handleSubmit() {
-    if (address && amount) {
-      updateOutput({'address':address, 'amount':txAmount, 'satsFormat': txFormat});
-      setShowModal(false);
-      setAddress('');
-      setAmount('');
-      setFormat('sats');
-      setError('');
-    } else {
-      setError('Пожалуйста, заполните все поля');
-    }
-  }
+  const {
+    satsFormat,
+    setFormat,
+    address,
+    amount,
+    error,
+    handleAddressChange,
+    handleAmountChange,
+    handleSubmit
+  } = useAddRecipient();
 
   const handleConnectWallet = async () => {
-    // Здесь должна быть логика подключения кошелька
-    // После успешного подключения:
-    const walletAddress = 'полученный_адрес_кошелька';
-    connectWallet(walletAddress);
+    await connectWallet();
+  };
+
+  const onSubmit = () => {
+    if (handleSubmit()) {
+      setShowModal(false);
+    }
   };
 
   return (
@@ -76,8 +37,11 @@ const AddRecipient = () => {
         border-zinc-200 border-4 text-sm w-10 h-16 top-20 
         right-5 hover:bg-zinc-950 z-10 flex items-center justify-center'
       />
-      <Modal show={showModal} onClose={() => setShowModal(false)}
-        className="fixed top-24 right-8 bg-white border-4 border-orange-600 rounded-xl">
+      <Modal 
+        show={showModal} 
+        onClose={() => setShowModal(false)}
+        className="fixed top-24 right-8 bg-white border-4 border-orange-600 rounded-xl"
+      >
         <div className="p-4">
           <div className="flex justify-between mb-4">
             <h2 className="text-lg font-bold">add recipient</h2>
@@ -126,7 +90,7 @@ const AddRecipient = () => {
             </div>
           </div>
           <Button 
-            onClick={handleSubmit} 
+            onClick={onSubmit} 
             title="add" 
             className='w-full bg-black text-white rounded-md px-4 py-2 hover:bg-orange-600'
           />

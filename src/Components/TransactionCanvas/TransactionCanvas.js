@@ -5,7 +5,7 @@ import InputElement from './InputElement';
 
 
 function TransactionCanvas() {
-  const { outputs, removeOutput, input, removeInput } = useTransaction();
+  const { outputs, removeOutput, input, removeInput, change } = useTransaction();
 
   return (
     <div className="w-full min-h-screen h-full bg-zinc-900 pt-20 pb-10">
@@ -29,7 +29,7 @@ function TransactionCanvas() {
               )}
             </div>
           </div>
-          
+          <h2 className="text-green-500 text-xl mb-4 text-center">Change: {change}</h2>
           {/* Правая часть экрана с выходными элементами */}
           <div className="w-1/2 pl-4">
             <h2 className="text-white text-xl mb-4 text-center">OUTPUTS</h2>

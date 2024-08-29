@@ -28,7 +28,7 @@ function Header() {
       <div className='flex justify-between items-center max-w-6xl mx-auto relative'>
         <div className='w-24 sm:w-32'></div>
         <div className='absolute left-1/2 transform -translate-x-1/2 italic text-2xl sm:text-3xl text-center'>
-          sandsend<span className='text-orange-600 text-sm sm:text-lg align-top'>サンド</span>
+          sandsend<span className='text-orange-600 text-sm sm:text-lg align-top'>fees</span>
         </div>
         {isConnected ? (
           <div className='w-24 sm:w-32 p-1 text-sm sm:text-base text-white text-center'>
