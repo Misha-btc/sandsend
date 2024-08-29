@@ -10,6 +10,7 @@ const AddRecipient = () => {
   const {
     satsFormat,
     setFormat,
+    handleFormatChange,
     address,
     amount,
     error,
@@ -81,7 +82,7 @@ const AddRecipient = () => {
               />
               <select
                 value={satsFormat}
-                onChange={(e) => setFormat(e.target.value)}
+                onChange={handleFormatChange}
                 className="border border-gray-300 rounded-r-md bg-white p-2"
               >
                 <option value="btc">btc</option>

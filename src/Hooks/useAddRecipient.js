@@ -2,72 +2,68 @@ import { useState } from 'react';
 import { useWallet } from '../Contexts/WalletContext';
 import { useTransaction } from '../Contexts/TransactionContext';
 
-export function useAddRecipient() {
+export function useAddRecipient(editMode) {
   const [satsFormat, setFormat] = useState('sats');
   const txFormat = 'sats';
+  const [edit, setEdit] = useState(editMode);
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
-  const [txAmount, setTxAmount] = useState(0);
   const [error, setError] = useState('');
   const { balance } = useWallet();
   const { updateOutput } = useTransaction();
-  const regex = /^[A-Za-z0-9]{0,74}$/;
+  const [addressError, setAddressError] = useState('');
+  const [amountError, setAmountError] = useState('');
 
   function handleAddressChange(e) {
+    setError('');
     const newValue = e.target.value;
+    const regex = /^[A-Za-z0-9]{0,74}$/;
+    setAddress(newValue);
+    
     if (regex.test(newValue)) {
-      setAddress(newValue);
-      setError('');
+      setAddressError('');
     } else {
-      setError('address is invalid');
+      setAddressError('address is invalid');
     }
+  }
+  function handleFormatChange(e) {
+    setFormat(e.target.value);
+    setError('');
   }
 
   function handleAmountChange(e) {
+    setAmount(e.target.value);
+    setError('');
+    
     if (satsFormat === 'sats') {
       if (balance < e.target.value) {
-        setError('you are too poor');
-        return;
+        setAmountError('you are too poor');
+      } else {
+        setAmount(Number(e.target.value));
+        setAmountError('');
       }
-      setTxAmount(Number(e.target.value));
-      setError('');
+      //setTxAmount(Number(e.target.value));
     } else {
       const amount = e.target.value * 100000000;
       if (amount > balance) {
-        setError('you are too poor');
-        return;
+        setAmountError('you are too poor');
+      } else {
+        setAmount(Number(e.target.value));
+        setAmountError('');
       }
-      setTxAmount(Number(amount));
-      setError('');
     }
-    setAmount(e.target.value);
   }
 
   function handleSubmit() {
-    if (!address || !amount) {
-      setError('Please fill in all fields');
+    if (addressError) {
+      setError(addressError);
+      return false;
+    } else if (amountError) {
+      setError(amountError);
       return false;
     }
-    if (!regex.test(address)) {
-      return { success: false, error: 'Invalid address format' };
-    }
-    const amountNumber = Number(amount);
-    if (isNaN(amountNumber) || amountNumber <= 0) {
-      return { success: false, error: 'Invalid amount' };
-    }
-    if (satsFormat === 'sats') {
-        if (balance < amountNumber) {
-          return { success: false, error: 'Недостаточно средств' };
-        }
-      } else {
-        const satsAmount = amountNumber * 100000000;
-        if (balance < satsAmount) {
-          return { success: false, error: 'Недостаточно средств' };
-        }
-        }
-
-    if (address.length < 74) {
-    updateOutput({'address':address, 'amount':txAmount, 'satsFormat': txFormat, 'status': 'pending'});
+    if (address && amount) {
+    updateOutput({'address':address, 'amount':amount, 'satsFormat': txFormat, 'status': 'pending'});
       setAddress('');
       setAmount('');
       setFormat('sats');
@@ -87,6 +83,7 @@ export function useAddRecipient() {
     error,
     handleAddressChange,
     handleAmountChange,
+    handleFormatChange,
     handleSubmit
   };
 }
