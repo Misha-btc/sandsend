@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { useWallet } from '../Contexts/WalletContext';
 import { useTransaction } from '../Contexts/TransactionContext';
 
-export function useAddRecipient(editMode) {
+export function useAddRecipient() {
   const [satsFormat, setFormat] = useState('sats');
   const txFormat = 'sats';
-  const [edit, setEdit] = useState(editMode);
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
@@ -26,7 +25,22 @@ export function useAddRecipient(editMode) {
       setAddressError('address is invalid');
     }
   }
+
   function handleFormatChange(e) {
+    if (e.target.value === 'sats') {
+      if (balance < amount) {
+        setAmountError('you are too poor');
+      } else {
+        setAmountError('');
+      }
+    } else {
+      const satsAmount = amount * 100000000;
+      if (balance < satsAmount) {
+        setAmountError('you are too poor');
+      } else {
+        setAmountError('');
+      }
+    }
     setFormat(e.target.value);
     setError('');
   }
@@ -63,7 +77,8 @@ export function useAddRecipient(editMode) {
       return false;
     }
     if (address && amount) {
-    updateOutput({'address':address, 'amount':amount, 'satsFormat': txFormat, 'status': 'pending'});
+
+      updateOutput({'address':address, 'amount':amount, 'satsFormat': txFormat, 'status': 'pending'});
       setAddress('');
       setAmount('');
       setFormat('sats');
