@@ -9,7 +9,6 @@ const AddRecipient = () => {
   const { isConnected, connectWallet, balance } = useWallet();
   const {
     satsFormat,
-    setFormat,
     handleFormatChange,
     address,
     amount,

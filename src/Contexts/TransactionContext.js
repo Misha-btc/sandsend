@@ -1,4 +1,4 @@
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useContext, useCallback, useEffect, useRef } from 'react';
 
 const TransactionContext = createContext();
 
@@ -8,11 +8,16 @@ export const TransactionProvider = ({ children }) => {
   const [fee, setFee] = useState('');
   const [rawTx, setRawTx] = useState('');
   const [change, setChange] = useState(0);
+
   console.log('input',input);
   console.log('outputs',outputs);
 
   const updateInput = useCallback((newInput) => {
-    setInput(prevInput => Array.isArray(prevInput) ? [...prevInput, newInput] : [newInput]);
+    setInput(prevInput => {
+      const updatedInput = Array.isArray(prevInput) ? [...prevInput, newInput] : [newInput];
+      // Присваиваем тип 'selected' всем имеющимся инпутам
+      return updatedInput.map(input => ({ ...input, type: 'selected' }));
+    });
   }, []);
 
   const updateOutput = useCallback((newOutput) => {
@@ -46,7 +51,6 @@ export const TransactionProvider = ({ children }) => {
         address: '',
         amount: 0,
         satsFormat: 'sats',
-        status: 'pending'
       };
       setOutputs([newOutput]);
     }
@@ -79,8 +83,9 @@ export const TransactionProvider = ({ children }) => {
     const totalOutputAmount = outputs.reduce((sum, output) => sum + output.amount, 0);
     console.log('totalOutputAmount', totalOutputAmount);
 
-    let selectedUtxos = [];
-    let selectedAmount = 0;
+    // Используем inputRef.current вместо input
+    let selectedUtxos = inputRef.current.filter(utxo => utxo.type === 'selected');
+    let selectedAmount = selectedUtxos.reduce((sum, utxo) => sum + utxo.value, 0);
 
     const utxosArray = Object.entries(transactionDetails)
       .filter(([addressType]) => addressType.includes(':payment'))
@@ -88,19 +93,24 @@ export const TransactionProvider = ({ children }) => {
         ...utxoDetails,
         txid: utxoKey.split(':')[0],
         vout: parseInt(utxoKey.split(':')[1]),
-        key: utxoKey
+        key: utxoKey,
+        type: 'auto'
       })))
       .sort((a, b) => b.value - a.value);
 
-    for (const utxo of utxosArray) {
+    const availableUtxos = utxosArray.filter(utxo => 
+      !selectedUtxos.some(selectedUtxo => selectedUtxo.txid === utxo.txid && selectedUtxo.vout === utxo.vout)
+    );
+
+    // Добавляем автоматические UTXO только если нужно
+    for (const utxo of availableUtxos) {
+      if (selectedAmount >= totalOutputAmount) break;
       selectedUtxos.push(utxo);
       selectedAmount += utxo.value;
-      if (selectedAmount >= totalOutputAmount) break;
     }
 
     if (selectedAmount >= totalOutputAmount) {
       setInput(selectedUtxos);
-      
     } else {
       console.log('Недостаточно UTXO для покрытия суммы');
     }
@@ -119,6 +129,12 @@ export const TransactionProvider = ({ children }) => {
       i === index ? { ...output, ...newOutputData } : output
     ));
   }, []);
+
+  const inputRef = useRef(input);
+
+  useEffect(() => {
+    inputRef.current = input;
+  }, [input]);
 
   return (
     <TransactionContext.Provider value={{

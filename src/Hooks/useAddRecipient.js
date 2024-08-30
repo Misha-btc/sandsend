@@ -3,8 +3,7 @@ import { useWallet } from '../Contexts/WalletContext';
 import { useTransaction } from '../Contexts/TransactionContext';
 
 export function useAddRecipient() {
-  const [satsFormat, setFormat] = useState('sats');
-  const txFormat = 'sats';
+  const [satsFormat, setSatsFormat] = useState('sats');
   const [address, setAddress] = useState('');
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
@@ -41,7 +40,7 @@ export function useAddRecipient() {
         setAmountError('');
       }
     }
-    setFormat(e.target.value);
+    setSatsFormat(e.target.value);
     setError('');
   }
 
@@ -56,7 +55,6 @@ export function useAddRecipient() {
         setAmount(Number(e.target.value));
         setAmountError('');
       }
-      //setTxAmount(Number(e.target.value));
     } else {
       const amount = e.target.value * 100000000;
       if (amount > balance) {
@@ -78,10 +76,10 @@ export function useAddRecipient() {
     }
     if (address && amount) {
 
-      updateOutput({'address':address, 'amount':amount, 'satsFormat': txFormat, 'status': 'pending'});
+      updateOutput({address:address, amount:amount, satsFormat: 'sats', type: 'selected'});
       setAddress('');
       setAmount('');
-      setFormat('sats');
+      setSatsFormat('sats');
       setError('');
       return true;
     } else {
@@ -92,7 +90,7 @@ export function useAddRecipient() {
 
   return {
     satsFormat,
-    setFormat,
+    setFormat: setSatsFormat,
     address,
     amount,
     error,
