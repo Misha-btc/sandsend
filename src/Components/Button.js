@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSpring, animated } from '@react-spring/web';
 
-const AnimatedButton = ({ onClick, title, className }) => {
+const AnimatedButton = ({ onClick, title, className, disabled }) => {
   const [isPressed, setPressed] = useState(false);
 
   const springProps = useSpring({
@@ -16,7 +16,8 @@ const AnimatedButton = ({ onClick, title, className }) => {
       onMouseLeave={() => setPressed(false)}
       onClick={onClick}
       style={springProps}
-      className={`font-bold ${className}`}
+      className={`font-bold ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+      disabled={disabled}
     >
       {title}
     </animated.button>

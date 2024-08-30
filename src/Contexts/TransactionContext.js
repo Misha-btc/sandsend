@@ -8,7 +8,7 @@ export const TransactionProvider = ({ children }) => {
   const [fee, setFee] = useState('');
   const [rawTx, setRawTx] = useState('');
   const [change, setChange] = useState(0);
-
+  const [removeAllUtxo, setRemoveAllUtxo] = useState(false);
   console.log('input',input);
   console.log('outputs',outputs);
 
@@ -43,6 +43,13 @@ export const TransactionProvider = ({ children }) => {
       }
       return prevInput;
     });
+  }, []);
+
+  const removeAll = useCallback(() => {
+    setRemoveAllUtxo(true);
+    setOutputs([]);
+    setInput([]);
+    setRemoveAllUtxo(false);
   }, []);
 
   const createEmptyOutput = useCallback(() => {
@@ -117,12 +124,12 @@ export const TransactionProvider = ({ children }) => {
   }, [outputs]);
 
   useEffect(() => {
-    if (outputs.length > 0) {
+    if (outputs.length > 0 && !removeAllUtxo) {
       selectOptimalUtxo();
     } else {
       setInput([]);
     }
-  }, [outputs, selectOptimalUtxo]);
+  }, [outputs, selectOptimalUtxo, removeAllUtxo]);
 
   const updateSpecificOutput = useCallback((index, newOutputData) => {
     setOutputs(prevOutputs => prevOutputs.map((output, i) => 
@@ -143,6 +150,8 @@ export const TransactionProvider = ({ children }) => {
       fee,
       change,
       rawTx,
+      removeAllUtxo,
+      removeAll,
       updateInput,
       updateOutput,
       setFee,
@@ -150,6 +159,7 @@ export const TransactionProvider = ({ children }) => {
       removeOutput,
       removeInput,
       updateSpecificOutput,
+      setRemoveAllUtxo,
     }}>
       {children}
     </TransactionContext.Provider>

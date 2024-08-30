@@ -5,7 +5,7 @@ import { useTransaction } from '../../Contexts/TransactionContext';
 const OutputElement = ({ output, index, removeOutput }) => {
   const [edit, setEdit] = useState(false);
   const [amount, setAmount] = useState(output.amount);
-  const { updateSpecificOutput } = useTransaction();
+  const { updateSpecificOutput, change } = useTransaction();
 
   const handleEditUpdate = (e) => {
     setEdit(!edit);
@@ -67,6 +67,15 @@ const OutputElement = ({ output, index, removeOutput }) => {
             onChange={handleAmountUpdate}
             className="w-full border border-gray-300 text-center rounded-md bg-zinc-900 text-white p-1"
           />
+          <div className="mt-2">
+            <Button
+              title="max"
+              className="w-full hover:text-green-500 text-gray-500"
+              onClick={() => {
+                updateSpecificOutput(index, { amount: change+output.amount });
+              }}
+            />
+          </div>
         </div>
       ) : (
         <div className="pt-3 pb-2">

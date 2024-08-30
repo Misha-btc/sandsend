@@ -2,10 +2,10 @@ import React from 'react';
 import { useTransaction } from '../../Contexts/TransactionContext';
 import OutputElement from './OutputElement';
 import InputElement from './InputElement';
-
+import Button from '../Button'; // Импортируем кнопку
 
 function TransactionCanvas() {
-  const { outputs, removeOutput, input, removeInput, change } = useTransaction();
+  const { outputs, removeOutput, input, removeInput, change, removeAll } = useTransaction();
 
   return (
     <div className="w-full min-h-screen h-full bg-zinc-900 pt-20 pb-10">
@@ -29,7 +29,7 @@ function TransactionCanvas() {
               )}
             </div>
           </div>
-          <h2 className="text-green-500 text-xl mb-4 text-center">Change: {change}</h2>
+          <h2 className="text-green-500 text-xl mb-4 font-bold text-center">change: {change}</h2>
           {/* Правая часть экрана с выходными элементами */}
           <div className="w-1/2 pl-4">
             <h2 className="text-white text-xl mb-4 text-center">OUTPUTS</h2>
@@ -49,6 +49,13 @@ function TransactionCanvas() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="fixed bottom-16 left-16">
+        <Button
+          title="Clear"
+          onClick={removeAll}
+          className="bg-cyan-400 text-white p-2 rounded bg-opacity-60 hover:bg-opacity-80" // Использована bg-opacity для прозрачности
+        />
       </div>
     </div>
   );
