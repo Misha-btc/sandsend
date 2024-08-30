@@ -1,40 +1,25 @@
 import React from 'react';
-import { useChoice } from '../../Contexts/ChosenUtxo';
+import { useTransaction } from '../../Contexts/TransactionContext';
 import useCreatePSBT from '../../Hooks/useCreatePSBT';
 import Button from '../Button'
 
 const CreateTransaction = () => {
-  const { choice } = useChoice();
+  const { input, outputs } = useTransaction();
   const { createPSBT } = useCreatePSBT();
 
   const handleCreateTransaction = () => {
-    const inputs = [];
-    const outputs = [];
+    const psbtInputs = input.map(input => ({
+      tx_hash: input.txid,
+      tx_output_n: input.vout,
+      value: input.value
+    }));
 
-    // Проходим по всем элементам choice и формируем входы и выходы
-    Object.keys(choice).forEach(txidVout => {
-      const utxo = choice[txidVout];
-      inputs.push({
-        tx_hash: utxo.txid,
-        tx_output_n: utxo.vout,
-        value: utxo.value
-      });
+    const psbtOutputs = outputs.map(output => ({
+      address: output.address,
+      value: output.amount
+    }));
 
-      // Добавляем new_ranges как выходы
-      Object.keys(utxo.new_ranges).forEach(rangeIndex => {
-        utxo.new_ranges[rangeIndex].forEach(range => {
-          if (range.address) {
-            outputs.push({
-              address: range.address,
-              value: range.sats
-            });
-          }
-        });
-      });
-    });
-
-    // Создаем PSBT
-    const psbtB64 = createPSBT(inputs, outputs);
+    const psbtB64 = createPSBT(psbtInputs, psbtOutputs);
     console.log('PSBT Base64:', psbtB64);
   };
 

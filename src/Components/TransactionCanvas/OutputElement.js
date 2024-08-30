@@ -7,6 +7,10 @@ const OutputElement = ({ output, index, removeOutput }) => {
   const [amount, setAmount] = useState(output.amount);
   const { updateSpecificOutput } = useTransaction();
 
+  const handleEditUpdate = (e) => {
+    setEdit(!edit);
+  }
+
   const handleAddressUpdate = (e) => {
     const newAddress = e.target.value;
     updateSpecificOutput(index, { address: newAddress });
@@ -65,8 +69,8 @@ const OutputElement = ({ output, index, removeOutput }) => {
           />
         </div>
       ) : (
-        <div>
-          <p className="text-green-500 mb-2">address: {output.address}</p>
+        <div className="pt-3 pb-2">
+          <p className="text-green-500 mb-2">address: {output.address.slice(0, 3)}...{output.address.slice(-5)}</p>
           <p className="text-white">
             amount: {output.amount} {output.satsFormat}
           </p>
