@@ -1,5 +1,6 @@
 import React from 'react';
 import { useTransition, animated } from '@react-spring/web';
+import useCloseOnEsc from '../../Hooks/useCloseOnEsc';
 
 const Modal = ({ show, onClose, className, children }) => {
   const transition = useTransition(show, {
@@ -31,6 +32,8 @@ const Modal = ({ show, onClose, className, children }) => {
     leave: { opacity: 0 },
     config: { duration: 100 },
   });
+
+  useCloseOnEsc(onClose);
 
   return (
     <>
