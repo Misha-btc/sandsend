@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useTransition, animated } from '@react-spring/web';
+import useCloseOnEsc from '../../Hooks/useCloseOnEsc';
 
 const Modal = ({ show, onClose, className, children }) => {
   const transition = useTransition(show, {
@@ -32,19 +33,7 @@ const Modal = ({ show, onClose, className, children }) => {
     config: { duration: 100 },
   });
 
-  useEffect(() => {
-    const handleEsc = (event) => {
-      if (event.key === 'Escape' || event.key === 'Esc' || event.keyCode === 27) {
-        onClose();
-      }
-    };
-
-    document.addEventListener('keydown', handleEsc);
-
-    return () => {
-      document.removeEventListener('keydown', handleEsc);
-    };
-  }, [onClose]);
+  useCloseOnEsc(onClose);
 
   return (
     <>
