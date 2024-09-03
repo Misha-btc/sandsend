@@ -8,7 +8,11 @@ export const WalletProvider = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [paymentAddress, setPaymentAddress] = useState('');
   const [balance, setBalance] = useState(0);
-
+  const [paymentAddressType, setPaymentAddressType] = useState('');
+  const [ordinalsAddressType, setOrdinalsAddressType] = useState('');
+  const [ordinalsAddress, setOrdinalsAddress] = useState('');
+  const [publicKey, setPublicKey] = useState('');
+  const [ordinalsPublicKey, setOrdinalsPublicKey] = useState('');
   useEffect(() => {
     const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
     if (storedAddresses.payment && storedAddresses.payment.address) {
@@ -26,14 +30,24 @@ export const WalletProvider = ({ children }) => {
     if (result.success) {
       setIsConnected(true);
       setPaymentAddress(result.paymentAddress);
+      setOrdinalsAddress(result.ordinalsAddress);
+      setPaymentAddressType(result.paymentAddressType);
+      setOrdinalsAddressType(result.ordinalsAddressType);
+      setPublicKey(result.paymentPublicKey);
+      setOrdinalsPublicKey(result.ordinalsPublicKey);
     }
   };
 
   return (
     <WalletContext.Provider value={{ 
       isConnected, 
-      paymentAddress, 
+      paymentAddress,
+      ordinalsAddress,
+      ordinalsPublicKey,
       balance, 
+      paymentAddressType,
+      ordinalsAddressType,
+      publicKey,
       updateBalance,
       connectWallet: handleConnectWallet
     }}>

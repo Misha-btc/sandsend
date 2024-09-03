@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import { useWallet } from '../Contexts/WalletContext';
 
 // Кастомный хук для получения UTXO (Unspent Transaction Outputs)
 const useFetchUtxos = (url) => {
@@ -9,29 +10,22 @@ const useFetchUtxos = (url) => {
     const [loading, setLoading] = useState(false);
     // Состояние для хранения деталей транзакций (ordinals и payment)
     const [transactionDetails, setTransactionDetails] = useState({});
+    const { paymentAddress, ordinalsAddress, paymentAddressType, ordinalsAddressType, publicKey, ordinalsPublicKey } = useWallet();
 
-    
     // Функция для получения UTXO по адресам
     const fetchUtxos = useCallback(() => {
         setLoading(true); // Устанавливаем состояние загрузки в true
 
-        // Получаем список адресов из localStorage
-        const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
-        // Извлекаем адреса из объектов в массив
-        if (Object.keys(storedAddresses).length === 0) {
-            console.log('Нет адресов в localStorage');
+        if (!paymentAddress && !ordinalsAddress) {
+            console.log('Нет адресов в кошельке');
             setLoading(false); // Устанавливаем состояние загрузки в false
             return;
         }
-    
-        // Извлекаем адреса из объектов в массив
-        const addresses = Object.values(storedAddresses).map(addr => ({
-            purpose: addr.purpose,
-            address: addr.address
-        }));
-        console.log('fetchADDRESSES', addresses);
-        console.log('[addr.address]', addresses[0].address);
 
+        const addresses = [
+            { purpose: 'payment', address: paymentAddress },
+            { purpose: 'ordinals', address: ordinalsAddress }
+        ].filter(addr => addr.address);
 
         // Создаем массив промисов для запросов UTXO по каждому адресу
         const fetchPromises = addresses.map(addr =>
@@ -58,7 +52,6 @@ const useFetchUtxos = (url) => {
                     // Если ответ содержит массив результатов, сохраняем его
                     if (response.data && Array.isArray(response.data.result)) {
                         newUtxos[key] = response.data.result;
-                        console.log('newUtxos from fetch',newUtxos)
                     } else {
                         newUtxos[key] = []; // Иначе устанавливаем пустой массив
                     }
@@ -71,7 +64,7 @@ const useFetchUtxos = (url) => {
                 console.error('Error fetching UTXOs:', error);
                 setLoading(false); // Останавливаем состояние загрузки в случае ошибки
             });
-    }, [url]); // Изменить зависимость для актуализации данных
+    }, [url, paymentAddress, ordinalsAddress]); // Изменить зависимость для актуализации данных
 
     const fetchTransactionDetails = useCallback(async (utxos) => {
         // Если нет UTXO, выходим из функции
@@ -87,7 +80,6 @@ const useFetchUtxos = (url) => {
                 txidVoutArray.push(["ord_output", [txidVoutKey]]);
             });
         });
-        console.log(`TXADDR`, txidVoutMap)
         
         try {
             // Отправляем запрос на получение деталей транзакций
@@ -101,7 +93,6 @@ const useFetchUtxos = (url) => {
                     'Content-Type': 'application/json' // Устанавливаем тип контента
                 }
             });
-            console.log(`responseDATA`, response.data)
             const newTransactionDetails = {};
             // Если ответ содержит массив результатов
             if (response.data && Array.isArray(response.data.result)) {
@@ -113,12 +104,13 @@ const useFetchUtxos = (url) => {
                         if (!newTransactionDetails[mapValue]) {
                             newTransactionDetails[mapValue] = {};
                         }
-                        // Получаем цель адреса из сохраненных адресов
-                            // Сохраняем результат в соответствующую цель
+                        const [address, purpose] = mapValue.split(':');
                         newTransactionDetails[mapValue][key] = {
                             ...res.result,
+                            address,
+                            addressType: purpose === 'payment' ? paymentAddressType : ordinalsAddressType,
+                            publicKey: purpose === 'payment' ? publicKey : ordinalsPublicKey
                         };
-                        
                     }
                 });
                 setTransactionDetails(newTransactionDetails); // Обновляем состояние деталей транзакций
@@ -133,7 +125,7 @@ const useFetchUtxos = (url) => {
             console.error('Error fetching transaction details:', error);
             setLoading(false); // Останавливаем состояние загрузки в случае ошибки
         }
-    }, [url]); // Зависимость от url
+    }, [url, paymentAddressType, ordinalsAddressType, publicKey, ordinalsPublicKey]); // Зависимость от url
 
     // Хук useEffect для получения UTXO при монтировании компонента
     useEffect(() => {

@@ -30,14 +30,14 @@ function YourUtxo() {
 
     // Обрабатываем клик на UTXO
     const handleUtxoClick = (key, detail) => {
-        const [txid,vout] = key.split(':');
+        const [txid, vout] = key.split(':');
         if (isChosen(key)) {
             removeFromChoice(key);
             removeFromLocalStorage(key);
             removeInput(key);
         } else {
             addToChoice(key, detail);
-            updateInput({ txid: txid, vout: vout, value: detail.value });
+            updateInput({ ...detail, txid, vout, key });
         }
     };
     const removeFromLocalStorage = (key) => {

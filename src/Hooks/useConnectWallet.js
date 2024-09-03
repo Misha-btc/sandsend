@@ -36,7 +36,12 @@ const useConnectWallet = () => {
 
         return { 
           success: true, 
-          paymentAddress: paymentAddressItem ? paymentAddressItem.address : null 
+          paymentAddress: paymentAddressItem ? paymentAddressItem.address : null,
+          ordinalsAddress: ordinalsAddressItem ? ordinalsAddressItem.address : null,
+          paymentAddressType: paymentAddressItem ? paymentAddressItem.addressType : null,
+          ordinalsAddressType: ordinalsAddressItem ? ordinalsAddressItem.addressType : null,
+          paymentPublicKey: paymentAddressItem ? paymentAddressItem.publicKey : null,
+          ordinalsPublicKey: ordinalsAddressItem ? ordinalsAddressItem.publicKey : null
         };
       } else {
         if (response.error.code === RpcErrorCode.USER_REJECTION) {
