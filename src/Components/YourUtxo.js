@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import useFetchUtxos from '../Hooks/useFetchUtxos'; // Импортируем кастомный хук для получения UTXO
-import { useChoice } from '../Contexts/ChosenUtxo'; // Импортируем хук для использования контекста выбора UTXO
 import AddressButton from './AddressButton';
 import { useTransaction } from '../Contexts/TransactionContext';
 
@@ -11,10 +10,8 @@ function YourUtxo() {
     const { loading, transactionDetails } = useFetchUtxos(url);
     
     const [addressPurpose, setAddressPurpose] = useState('');
-    // Используем контекст для управления выбранными UTXO
-    const { choice, addToChoice, removeFromChoice } = useChoice();
 
-    const { updateInput, removeInput } = useTransaction();
+    const { updateInput, removeInput, input } = useTransaction();
 
     useEffect(() => {
         const addressType = Object.keys(transactionDetails);
@@ -23,33 +20,22 @@ function YourUtxo() {
         }
     }, [transactionDetails, addressPurpose]);
 
-    // Проверяем, выбран ли UTXO
-    const isChosen = (key) => {
-        return choice.hasOwnProperty(key); // Возвращает true, если ключ существует в объекте choice
+    const isSelected = (key) => {
+        return input.some(input => input.key === key);
     };
-
     // Обрабатываем клик на UTXO
     const handleUtxoClick = (key, detail) => {
         const [txid, vout] = key.split(':');
-        if (isChosen(key)) {
-            removeFromChoice(key);
-            removeFromLocalStorage(key);
+
+        // Убираем логику выбора
+        if (isSelected(key)) {
             removeInput(key);
         } else {
-            addToChoice(key, detail);
+            // Если UTXO не выбран, добавляем его в input
             updateInput({ ...detail, txid, vout, key });
         }
     };
-    const removeFromLocalStorage = (key) => {
-        const savedData = localStorage.getItem('myData');
-        if (savedData) {
-            const parsedData = JSON.parse(savedData);
-            if (parsedData[key]) {
-                delete parsedData[key];
-                localStorage.setItem('myData', JSON.stringify(parsedData));
-            }
-        }
-    };
+
     const filteredTransactionDetails = transactionDetails[addressPurpose] || {};
     const [, type] = addressPurpose !== '' ? addressPurpose.split(':') : ['', ''];
 
@@ -78,7 +64,7 @@ function YourUtxo() {
                             {Object.entries(filteredTransactionDetails).map(([key, detail]) => (
                                 <div 
                                     key={key} 
-                                    className={`border-b p-2 lowercase font-sans text-xs cursor-pointer ${isChosen(key) ? 'bg-green-100' : ''}`} 
+                                    className={`border-b p-2 lowercase font-sans text-xs cursor-pointer ${isSelected(key) ? 'bg-green-100' : ''}`} 
                                     onClick={() => handleUtxoClick(key, detail)} // Обработчик клика
                                 >
                                     <p className='text-xs'>utxo: {key}</p> {/* Отображение ключа UTXO */}

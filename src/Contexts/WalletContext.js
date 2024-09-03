@@ -15,9 +15,15 @@ export const WalletProvider = ({ children }) => {
   const [ordinalsPublicKey, setOrdinalsPublicKey] = useState('');
   useEffect(() => {
     const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
-    if (storedAddresses.payment && storedAddresses.payment.address) {
+    console.log('storedAddresses', storedAddresses);
+    if (storedAddresses.payment && storedAddresses.payment.address && storedAddresses.ordinals && storedAddresses.ordinals.address) {
       setIsConnected(true);
       setPaymentAddress(storedAddresses.payment.address);
+      setOrdinalsAddress(storedAddresses.ordinals.address);
+      setPaymentAddressType(storedAddresses.payment.addressType);
+      setOrdinalsAddressType(storedAddresses.ordinals.addressType);
+      setPublicKey(storedAddresses.payment.publicKey);
+      setOrdinalsPublicKey(storedAddresses.ordinals.publicKey);
     }
   }, []);
 

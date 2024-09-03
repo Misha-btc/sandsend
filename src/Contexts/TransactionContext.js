@@ -3,9 +3,16 @@ import React, { createContext, useState, useContext, useCallback, useEffect, use
 const TransactionContext = createContext();
 
 export const TransactionProvider = ({ children }) => {
-  const [input, setInput] = useState([]);
-  const [outputs, setOutputs] = useState([]);
-  const [fee, setFee] = useState('');
+  const [input, setInput] = useState(() => {
+    const savedInput = localStorage.getItem('transactionInput');
+    return savedInput ? JSON.parse(savedInput) : [];
+  });
+
+  const [outputs, setOutputs] = useState(() => {
+    const savedOutputs = localStorage.getItem('transactionOutputs');
+    return savedOutputs ? JSON.parse(savedOutputs) : [];
+  });
+
   const [rawTx, setRawTx] = useState('');
   const [change, setChange] = useState(0);
   const [removeAllUtxo, setRemoveAllUtxo] = useState(false);
@@ -49,6 +56,9 @@ export const TransactionProvider = ({ children }) => {
     setRemoveAllUtxo(true);
     setOutputs([]);
     setInput([]);
+    localStorage.removeItem('transactionInput');
+    localStorage.removeItem('transactionOutputs');
+    localStorage.removeItem('transactionFee');
     setRemoveAllUtxo(false);
   }, []);
 
@@ -143,18 +153,26 @@ export const TransactionProvider = ({ children }) => {
     inputRef.current = input;
   }, [input]);
 
+  useEffect(() => {
+    localStorage.setItem('transactionInput', JSON.stringify(input));
+  }, [input]);
+
+  useEffect(() => {
+    localStorage.setItem('transactionOutputs', JSON.stringify(outputs));
+  }, [outputs]);
+
   return (
     <TransactionContext.Provider value={{
       input,
       outputs,
-      fee,
+
       change,
       rawTx,
       removeAllUtxo,
       removeAll,
       updateInput,
       updateOutput,
-      setFee,
+
       createRawTransaction,
       removeOutput,
       removeInput,
