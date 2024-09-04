@@ -29,13 +29,12 @@ const OutputElement = ({ output, index, removeOutput }) => {
 
   const validateAddress = (address) => {
     const regex = /^(bc1|tb1|[123])[a-zA-HJ-NP-Z0-9]{25,87}$/;
-    if (regex.test(address) || address === ''){
+    if (regex.test(address)){
       return '';
     } else {
       return 'invalid address';
     }
   };
-   
 
   const validateAmount = (amount) => {
     if (amount === '' || amount === null || Number(amount) === 0) {
