@@ -49,12 +49,15 @@ const OutputElement = ({ output, index, removeOutput }) => {
 
   const handleAmountUpdate = (e) => {
     const newAmount = e.target.value;
+    if (newAmount.startsWith('-')) {
+      return;
+    }
     const [integerPart, decimalPart] = newAmount.split('.');
     const formattedAmount = decimalPart ? `${integerPart}.${decimalPart.slice(0, 8)}` : newAmount;
     setEdit(true);
     setErrors({ ...errors, amountError: '' });
     setAmount(formattedAmount);
-    console.log(`balance: ${balance}`);
+    console.log(`баланс: ${balance}`);
   };
 
   useEffect(() => {
