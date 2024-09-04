@@ -10,7 +10,17 @@ export const TransactionProvider = ({ children }) => {
 
   const [outputs, setOutputs] = useState(() => {
     const savedOutputs = localStorage.getItem('transactionOutputs');
-    return savedOutputs ? JSON.parse(savedOutputs) : [];
+    return savedOutputs ? JSON.parse(savedOutputs) : [{
+      address: '',
+      amount: '',
+      satsFormat: '',
+    }];
+  });
+  const [temporaryOutput, setTemporaryOutput] = useState({
+    address: '',
+    amount: '',
+    satsFormat: '',
+    index: '',
   });
 
   const [rawTx, setRawTx] = useState('');
@@ -66,8 +76,8 @@ export const TransactionProvider = ({ children }) => {
     if (input.length > 0 && outputs.length === 0) {
       const newOutput = {
         address: '',
-        amount: 0,
-        satsFormat: 'sats',
+        amount: '',
+        satsFormat: '',
       };
       setOutputs([newOutput]);
     }
@@ -80,12 +90,19 @@ export const TransactionProvider = ({ children }) => {
   
   const balance_inputs_outputs = useCallback(() => {
     const sum_inputs = input.reduce((sum, input) => sum + input.value, 0);
-    const sum_outputs = outputs.reduce((sum, output) => sum + output.amount, 0);
+    const sum_outputs = outputs.map((output, index) => {
+      if (temporaryOutput.index === index) {
+        const amount = parseFloat(temporaryOutput.amount || 0);
+        return temporaryOutput.coinFormat === 'btc' ? amount * 100000000 : amount;
+      }
+      return parseFloat(output.amount || 0);
+    }).reduce((sum, amount) => sum + amount, 0);
     console.log('sum_inputs', sum_inputs);
+    console.log('sum_outputs', sum_outputs);
     const difference = Math.max(sum_inputs - sum_outputs, 0);
     setChange(difference);
     return difference;
-  }, [input, outputs, setChange]);
+  }, [input, outputs, temporaryOutput, setChange]);
 
   useEffect(() => {
     balance_inputs_outputs();
@@ -97,7 +114,13 @@ export const TransactionProvider = ({ children }) => {
     if (!storedDetails) return;
 
     const transactionDetails = JSON.parse(storedDetails);
-    const totalOutputAmount = outputs.reduce((sum, output) => sum + output.amount, 0);
+    const totalOutputAmount = outputs.map((output, index) => {
+      if (temporaryOutput.index === index) {
+        const amount = parseFloat(temporaryOutput.amount || 0);
+        return temporaryOutput.coinFormat === 'btc' ? amount * 100000000 : amount;
+      }
+      return parseFloat(output.amount || 0);
+    }).reduce((sum, amount) => sum + amount, 0);
     console.log('totalOutputAmount', totalOutputAmount);
 
     // Используем inputRef.current вместо input
@@ -131,7 +154,7 @@ export const TransactionProvider = ({ children }) => {
     } else {
       console.log('Недостаточно UTXO для покрытия суммы');
     }
-  }, [outputs]);
+  }, [outputs, temporaryOutput]);
 
   useEffect(() => {
     if (outputs.length > 0 && !removeAllUtxo) {
@@ -161,6 +184,16 @@ export const TransactionProvider = ({ children }) => {
     localStorage.setItem('transactionOutputs', JSON.stringify(outputs));
   }, [outputs]);
 
+  useEffect(() => {
+    if (outputs.length === 0) {
+      setOutputs([{
+        address: '',
+        amount: '',
+        satsFormat: '',
+      }]);
+    }
+  }, [outputs]);
+
   return (
     <TransactionContext.Provider value={{
       input,
@@ -172,7 +205,7 @@ export const TransactionProvider = ({ children }) => {
       removeAll,
       updateInput,
       updateOutput,
-
+      setTemporaryOutput,
       createRawTransaction,
       removeOutput,
       removeInput,

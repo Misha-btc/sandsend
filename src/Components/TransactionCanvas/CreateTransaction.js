@@ -32,7 +32,7 @@ const CreateTransaction = () => {
     console.log('Input Values:', input.map(input => input.value));
     console.log('Output Values:', outputs.map(output => output.amount));
 
-    const psbtB64 = createPSBT(psbtInputs, psbtOutputs, true);
+    const psbtB64 = createPSBT(psbtInputs, psbtOutputs);
     console.log('PSBT Base64:', psbtB64);
     setPsbt(psbtB64);
   };
@@ -61,7 +61,7 @@ const CreateTransaction = () => {
     {!psbt && (
       <Button
         title='Создать PSBT'
-        className='font-bold fixed w-38 m-8 p-1 text-white text-center rounded text-white bg-lime-700 p-2 bottom-10 right-4 hover:bg-lime-800 z-20'
+        className='font-bold fixed w-38 m-8 p-1 text-white text-center rounded text-white bg-green-600 p-2 bottom-10 right-4 hover:bg-green-500 z-20'
         onClick={handleCreateTransaction}
       />
     )}

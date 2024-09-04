@@ -4,7 +4,7 @@ import AddressButton from './AddressButton';
 import { useTransaction } from '../Contexts/TransactionContext';
 
 function YourUtxo() {
-    const url = 'https://mainnet.sandshrew.io/v1/8f32211e11c25c2f0b5084e41970347d';
+    const url = 'https://signet.sandshrew./v1/8f32211e11c25c2f0b5084e41970347d';
 
     // Используем кастомный хук для получения UTXO и деталей транзакций
     const { loading, transactionDetails } = useFetchUtxos(url);
