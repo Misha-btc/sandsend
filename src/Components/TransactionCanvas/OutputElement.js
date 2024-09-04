@@ -5,7 +5,7 @@ import { useWallet } from '../../Contexts/WalletContext';
 
 const OutputElement = ({ output, index, removeOutput }) => {
   const { balance } = useWallet();
-  const [coinFormat, setCoinFormat] = useState('');
+  const [coinFormat, setCoinFormat] = useState('sats');
   console.log(coinFormat);
   const [edit, setEdit] = useState(false);
   const [errors, setErrors] = useState({
@@ -14,7 +14,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
   });
   const [amount, setAmount] = useState(output.amount);
   const [address, setAddress] = useState(output.address);
-  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput } = useTransaction();
+  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput, outputs } = useTransaction();
 
   const handleFormatChange = (e) => {
     const newFormat = e.target.value;
@@ -61,7 +61,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
   useEffect(() => {
     console.log('amount updated', amount);
     setTemporaryOutput({ amount: amount, index: index, coinFormat: coinFormat });
-  }, [amount, index, setTemporaryOutput, coinFormat]); // Этот код будет выполнен каждый раз, когда изменяется amount
+  }, [amount, index, setTemporaryOutput, coinFormat]);
 
   const handleConfirm = () => {
     const amountError = validateAmount(amount);
@@ -73,15 +73,20 @@ const OutputElement = ({ output, index, removeOutput }) => {
       setErrors({ ...errors, addressError: addressError });
       return;
     } else {
-        setTemporaryOutput('');
-        setEdit(false);
-        // Обновляем amount на значение из input
-        setAmount(amount);
-        if (coinFormat === 'btc') {
-          updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount) * 100000000, address: address });
-        } else {
-          updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount), address: address });
-        }
+      setTemporaryOutput({
+        address: '',
+        amount: '',
+        satsFormat: '',
+        index: '',
+      });
+      setEdit(false);
+      setAddress('');
+      setAmount('');
+      if (coinFormat === 'btc') {
+        updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount) * 100000000, address: address });
+      } else {
+        updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount), address: address });
+      }
     }
   }
   console.log(`amount: ${amount}`);
@@ -92,6 +97,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
         title="x"
         onClick={() => removeOutput(index)}
         className="absolute -top-3 -left-2 font-bold text-2xl text-white hover:text-gray-400"
+        disabled={outputs.length === 1}
       >
       </Button>
       {(edit || output.amount === '' || output.amount === 0 || output.amount === null) ? (
@@ -153,9 +159,9 @@ const OutputElement = ({ output, index, removeOutput }) => {
               className="w-full hover:text-green-500 text-gray-500"
               onClick={() => {
                 if (change > 0 && coinFormat === 'btc') {
-                  setAmount((change + output.amount) / 100000000);
+                  setAmount((change + (temporaryOutput.amount ? temporaryOutput.amount : output.amount)) / 100000000);
                 } else if (change > 0 && coinFormat === 'sats') {
-                  setAmount(change + output.amount);
+                  setAmount(change + (temporaryOutput.amount ? temporaryOutput.amount : output.amount));
                 }
               }}
             />

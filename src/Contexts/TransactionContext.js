@@ -13,7 +13,7 @@ export const TransactionProvider = ({ children }) => {
     return savedOutputs ? JSON.parse(savedOutputs) : [{
       address: '',
       amount: '',
-      satsFormat: '',
+      satsFormat: 'sats',
     }];
   });
   const [temporaryOutput, setTemporaryOutput] = useState({
@@ -72,14 +72,18 @@ export const TransactionProvider = ({ children }) => {
     setRemoveAllUtxo(false);
   }, []);
 
-  const createEmptyOutput = useCallback(() => {
-    if (input.length > 0 && outputs.length === 0) {
+  const createEmptyOutput = useCallback((addEmptyOutput) => {
+    if ((input.length > 0 && outputs.length === 0) || addEmptyOutput) {
       const newOutput = {
         address: '',
         amount: '',
         satsFormat: '',
       };
-      setOutputs([newOutput]);
+      if (outputs.length > 0) {
+        setOutputs([...outputs, newOutput]);
+      } else {
+        setOutputs([newOutput]);
+      }
     }
   }, [input, outputs]);
 
@@ -198,7 +202,7 @@ export const TransactionProvider = ({ children }) => {
     <TransactionContext.Provider value={{
       input,
       outputs,
-
+      temporaryOutput,
       change,
       rawTx,
       removeAllUtxo,
@@ -211,6 +215,7 @@ export const TransactionProvider = ({ children }) => {
       removeInput,
       updateSpecificOutput,
       setRemoveAllUtxo,
+      createEmptyOutput,
     }}>
       {children}
     </TransactionContext.Provider>
