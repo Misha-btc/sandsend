@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Button from '../Button';
 import { useTransaction } from '../../Contexts/TransactionContext';
 import { useWallet } from '../../Contexts/WalletContext'; 
@@ -14,11 +14,13 @@ const OutputElement = ({ output, index, removeOutput }) => {
   });
   const [amount, setAmount] = useState(output.amount);
   const [address, setAddress] = useState(output.address);
-  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput, outputs } = useTransaction();
+  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput } = useTransaction();
 
   const handleFormatChange = (e) => {
     const newFormat = e.target.value;
     setCoinFormat(newFormat);
+    // Обновляем временный вывод при изменении формата
+    setTemporaryOutput({ amount, index, coinFormat: newFormat });
   }
 
   const handleAddressUpdate = (e) => {
@@ -57,13 +59,12 @@ const OutputElement = ({ output, index, removeOutput }) => {
     setEdit(true);
     setErrors({ ...errors, amountError: '' });
     setAmount(formattedAmount);
+    // Обновляем временный вывод при изменении суммы
+    setTemporaryOutput({ amount: formattedAmount, index, coinFormat });
     console.log(`баланс: ${balance}`);
   };
 
-  useEffect(() => {
-    console.log('amount updated', amount);
-    setTemporaryOutput({ amount: amount, index: index, coinFormat: coinFormat });
-  }, [amount, index, setTemporaryOutput, coinFormat]);
+  // Удаляем useEffect, так как теперь обновление происходит в обрботчиках
 
   const handleConfirm = () => {
     const amountError = validateAmount(amount);
@@ -81,25 +82,60 @@ const OutputElement = ({ output, index, removeOutput }) => {
         satsFormat: '',
         index: '',
       });
-      setEdit(false);
-      setAddress('');
-      setAmount('');
       if (coinFormat === 'btc') {
         updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount) * 100000000, address: address });
       } else {
-        updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount), address: address });
+        updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount), address: address, satsFormat: coinFormat });
       }
+      setAmount('');
+      setAddress('');
+      setEdit(false);
     }
   }
-  console.log(`amount: ${amount}`);
+
+  const handleMaxAmount = () => {
+    if (change > 0) {
+      let maxAmount;
+      if (coinFormat === 'btc') {
+        maxAmount = (
+          (Number(change) / 100000000) + 
+          (Number(temporaryOutput.amount) || Number(output.amount) || 0)
+        );
+      } else if (coinFormat === 'sats') {
+        maxAmount = Number(change) + (Number(temporaryOutput.amount) || Number(output.amount) || 0);
+      }
+      setAmount(maxAmount);
+      // Обновляем временный вывод при установке максимальной суммы
+      setTemporaryOutput({ amount: maxAmount, index, coinFormat });
+    }
+  };
+
+  const handleEdit = () => {
+    setEdit(true);
+    setAddress(output.address);
+    setAmount(output.amount);
+  }
+
+  const handleRemoveOutput = () => {
+    if (index > 0) {
+      removeOutput(index);
+    }
+    setAmount('');
+    setAddress('');
+    setTemporaryOutput({
+      address: '',
+      amount: '',
+      satsFormat: '',
+      index: '',
+    });
+  };
 
   return (
     <div className="bg-zinc-800 p-4 rounded-lg shadow-md mb-4 relative border-2 border-orange-600">
       <Button
         title="x"
-        onClick={() => removeOutput(index)}
+        onClick={handleRemoveOutput}
         className="absolute -top-3 -left-2 font-bold text-2xl text-white hover:text-gray-400"
-        disabled={outputs.length === 1}
       >
       </Button>
       {(edit || output.amount === '' || output.amount === 0 || output.amount === null) ? (
@@ -112,7 +148,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
         <Button
           className="absolute top-2 right-2 text-gray-500 hover:text-white"
           title="edit"
-          onClick={() => setEdit(true)}
+          onClick={handleEdit}
         />
       )}
       {(edit || output.amount === '' || output.amount === 0 || output.amount === null)  ? (
@@ -159,13 +195,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
             <Button
               title="max"
               className="w-full hover:text-green-500 text-gray-500"
-              onClick={() => {
-                if (change > 0 && coinFormat === 'btc') {
-                  setAmount((change + (temporaryOutput.amount ? temporaryOutput.amount : output.amount)) / 100000000);
-                } else if (change > 0 && coinFormat === 'sats') {
-                  setAmount(change + (temporaryOutput.amount ? temporaryOutput.amount : output.amount));
-                }
-              }}
+              onClick={handleMaxAmount}
             />
           </div>
         </div>
