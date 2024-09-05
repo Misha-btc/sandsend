@@ -27,11 +27,6 @@ const CreateTransaction = () => {
       value: output.amount
     }));
 
-    console.log('Inputs:', psbtInputs);
-    console.log('Outputs:', psbtOutputs);
-    console.log('Input Values:', input.map(input => input.value));
-    console.log('Output Values:', outputs.map(output => output.amount));
-
     const psbtB64 = createPSBT(psbtInputs, psbtOutputs);
     console.log('PSBT Base64:', psbtB64);
     setPsbt(psbtB64);
@@ -41,10 +36,8 @@ const CreateTransaction = () => {
     try {
       if (psbt) {
         const result = await signPSBT(psbt, broadcast);
-        console.log('Результат подписания:', result);
         if (broadcast && result.txid) {
           setTxid(result.txid);
-          console.log('Транзакция отправлена в сеть. TXID:', result.txid);
         } else {
           setSignedPsbt(result.psbt);
         }

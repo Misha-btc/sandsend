@@ -31,10 +31,6 @@ export const InputsProvider = ({ children }) => {
     });
   }, []);
 
-  useEffect(() => {
-    console.log('Current INPUTS:', inputs);
-  }, [inputs]);
-
   return (
     <InputsContext.Provider value={{ inputs, addInput, updateInput }}>
       {children}

@@ -6,14 +6,14 @@ import { useWallet } from '../../Contexts/WalletContext';
 const OutputElement = ({ output, index, removeOutput }) => {
   const { balance } = useWallet();
   const [coinFormat, setCoinFormat] = useState('sats');
-  console.log(coinFormat);
   const [errors, setErrors] = useState({
     addressError: '',
     amountError: ''
   });
+  const [indexEdit, setIndexEdit] = useState(false);
   const [amount, setAmount] = useState(output.amount);
   const [address, setAddress] = useState(output.address);
-  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput, edit, setEdit } = useTransaction();
+  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput, edit, setEdit, outputs } = useTransaction();
 
   const handleFormatChange = (e) => {
     const newFormat = e.target.value;
@@ -59,7 +59,6 @@ const OutputElement = ({ output, index, removeOutput }) => {
     setAmount(formattedAmount);
     // Обновляем временный вывод при изменении суммы
     setTemporaryOutput({ amount: formattedAmount, index, coinFormat });
-    console.log(`баланс: ${balance}`);
   };
 
   // Удаляем useEffect, так как теперь обновление происходит в обрботчиках
@@ -87,6 +86,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
       }
       setAmount('');
       setAddress('');
+      setIndexEdit(false);
       setEdit(false);
     }
   }
@@ -110,6 +110,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
 
   const handleEdit = () => {
     setEdit(true);
+    setIndexEdit(true);
     setAddress(output.address);
     setAmount(output.amount);
   }
@@ -117,8 +118,10 @@ const OutputElement = ({ output, index, removeOutput }) => {
   const handleRemoveOutput = () => {
     if (index > 0) {
       removeOutput(index);
-    } else if (index === 0) {
+    } else if (index === 0 && outputs.length === 1) {
       updateSpecificOutput(index, { amount: '', address: ''});
+    } else if (index === 0 && outputs.length > 1) {
+      removeOutput(index);
     }
     setAmount('');
     setAddress('');
@@ -138,7 +141,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
         className="absolute -top-3 -left-2 font-bold text-2xl text-white hover:text-gray-400"
       >
       </Button>
-      {(edit || output.amount === '' || output.amount === 0 || output.amount === null) ? (
+      {(indexEdit || output.amount === '' || output.amount === 0 || output.amount === null) ? (
         <Button
           className="absolute top-2 right-2 text-gray-500 hover:text-white"
           title="confirm"
@@ -151,7 +154,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
           onClick={handleEdit}
         />
       )}
-      {(edit || output.amount === '' || output.amount === 0 || output.amount === null)  ? (
+      {(indexEdit || output.amount === '' || output.amount === 0 || output.amount === null)  ? (
         <div>
           <label htmlFor="address" className="block text-sm font-medium text-gray-400 mb-1">
             address

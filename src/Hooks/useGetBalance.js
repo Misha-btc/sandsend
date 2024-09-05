@@ -26,7 +26,6 @@ const useGetBalance = () => {
       const data = response.data;
 
       if (data.result) {
-        console.log('data.result', data.result)
         const chainStats = data.result.chain_stats;
         const totalReceived = chainStats.funded_txo_sum;
         const totalSpent = chainStats.spent_txo_sum;

@@ -72,7 +72,6 @@ export const ChoiceProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    console.log('Current choice:', choice);
   }, [choice]);
 
   return (

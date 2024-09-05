@@ -17,7 +17,6 @@ const useFetchUtxos = (url) => {
         setLoading(true); // Устанавливаем состояние загрузки в true
 
         if (!paymentAddress && !ordinalsAddress) {
-            console.log('Нет адресов в кошельке');
             setLoading(false); // Устанавливаем состояние загрузки в false
             return;
         }
@@ -118,7 +117,6 @@ const useFetchUtxos = (url) => {
                 localStorage.setItem('transactionDetails', JSON.stringify(newTransactionDetails));
                 // Логируем детали транзакций для отладки
             }
-            console.log(`transDetail`, newTransactionDetails)
             setLoading(false); // Останавливаем состояние загрузки
         } catch (error) {
             // Логируем ошибку если запросы завершились неудачно

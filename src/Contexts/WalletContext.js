@@ -15,7 +15,6 @@ export const WalletProvider = ({ children }) => {
   const [ordinalsPublicKey, setOrdinalsPublicKey] = useState('');
   useEffect(() => {
     const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
-    console.log('storedAddresses', storedAddresses);
     if (storedAddresses.payment && storedAddresses.payment.address && storedAddresses.ordinals && storedAddresses.ordinals.address) {
       setIsConnected(true);
       setPaymentAddress(storedAddresses.payment.address);
