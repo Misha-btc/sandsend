@@ -8,6 +8,8 @@ export const TransactionProvider = ({ children }) => {
     return savedInput ? JSON.parse(savedInput) : [];
   });
 
+  const [edit, setEdit] = useState(false);
+
   const [outputs, setOutputs] = useState(() => {
     const savedOutputs = localStorage.getItem('transactionOutputs');
     return savedOutputs ? JSON.parse(savedOutputs) : [{
@@ -64,6 +66,12 @@ export const TransactionProvider = ({ children }) => {
 
   const removeAll = useCallback(() => {
     setRemoveAllUtxo(true);
+    setTemporaryOutput({
+      address: '',
+      amount: '',
+      satsFormat: '',
+      index: '',
+    });
     setOutputs([]);
     setInput([]);
     localStorage.removeItem('transactionInput');
@@ -119,6 +127,7 @@ export const TransactionProvider = ({ children }) => {
 
     const transactionDetails = JSON.parse(storedDetails);
     const totalOutputAmount = outputs.map((output, index) => {
+      console.log('temporaryOutput.index', temporaryOutput.index);
       if (temporaryOutput.index === index) {
         const amount = parseFloat(temporaryOutput.amount || 0);
         return temporaryOutput.coinFormat === 'btc' ? amount * 100000000 : amount;
@@ -149,6 +158,7 @@ export const TransactionProvider = ({ children }) => {
     // Добавляем автоматические UTXO только если нужно
     for (const utxo of availableUtxos) {
       if (selectedAmount >= totalOutputAmount) break;
+      console.log('selectedAmount', selectedAmount);
       selectedUtxos.push(utxo);
       selectedAmount += utxo.value;
     }
@@ -206,6 +216,8 @@ export const TransactionProvider = ({ children }) => {
       change,
       rawTx,
       removeAllUtxo,
+      edit,
+      setEdit,
       removeAll,
       updateInput,
       updateOutput,

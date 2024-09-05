@@ -7,14 +7,13 @@ const OutputElement = ({ output, index, removeOutput }) => {
   const { balance } = useWallet();
   const [coinFormat, setCoinFormat] = useState('sats');
   console.log(coinFormat);
-  const [edit, setEdit] = useState(false);
   const [errors, setErrors] = useState({
     addressError: '',
     amountError: ''
   });
   const [amount, setAmount] = useState(output.amount);
   const [address, setAddress] = useState(output.address);
-  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput } = useTransaction();
+  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput, edit, setEdit } = useTransaction();
 
   const handleFormatChange = (e) => {
     const newFormat = e.target.value;
@@ -56,7 +55,6 @@ const OutputElement = ({ output, index, removeOutput }) => {
     }
     const [integerPart, decimalPart] = newAmount.split('.');
     const formattedAmount = decimalPart ? `${integerPart}.${decimalPart.slice(0, 8)}` : newAmount;
-    setEdit(true);
     setErrors({ ...errors, amountError: '' });
     setAmount(formattedAmount);
     // Обновляем временный вывод при изменении суммы
@@ -83,9 +81,9 @@ const OutputElement = ({ output, index, removeOutput }) => {
         index: '',
       });
       if (coinFormat === 'btc') {
-        updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount) * 100000000, address: address });
+        updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount) * 100000000, address: address});
       } else {
-        updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount), address: address, satsFormat: coinFormat });
+        updateSpecificOutput(index, { amount: amount === '' ? '' : Number(amount), address: address, satsFormat: coinFormat});
       }
       setAmount('');
       setAddress('');
@@ -185,7 +183,6 @@ const OutputElement = ({ output, index, removeOutput }) => {
               }}
             >
               <option value="sats">sats</option>
-              <option value="btc">BTC</option>
             </select>
           </div>
           {errors.amountError && (

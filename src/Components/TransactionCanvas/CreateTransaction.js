@@ -60,7 +60,7 @@ const CreateTransaction = () => {
     <>
     {!psbt && (
       <Button
-        title='Создать PSBT'
+        title='Create PSBT'
         className='font-bold fixed w-38 m-8 p-1 text-white text-center rounded text-white bg-green-600 p-2 bottom-10 right-4 hover:bg-green-500 z-20'
         onClick={handleCreateTransaction}
       />
@@ -68,12 +68,12 @@ const CreateTransaction = () => {
     {psbt && !signedPsbt && !txid && (
       <div className='fixed bottom-10 right-4 flex flex-col gap-2'>
         <Button
-          title='Подписать PSBT'
+          title='Sign PSBT'
           className='font-bold w-38 p-1 text-white text-center rounded text-white bg-lime-700 hover:bg-lime-800 z-20'
           onClick={() => handleSignTransaction(false)}
         />
         <Button
-          title='Подписать и отправить'
+          title='Sign and Send'
           className='font-bold w-38 p-1 text-white text-center rounded text-white bg-orange-700 hover:bg-orange-800 z-20'
           onClick={() => handleSignTransaction(true)}
         />
@@ -81,12 +81,12 @@ const CreateTransaction = () => {
     )}
     {signedPsbt && (
       <div className='fixed bottom-10 right-4 text-white bg-lime-700 p-2 rounded'>
-        PSBT подписан: {signedPsbt.slice(0, 20)}...
+        PSBT signed: {signedPsbt.slice(0, 20)}...
       </div>
     )}
     {txid && (
       <div className='fixed bottom-10 right-4 text-white bg-orange-700 p-2 rounded'>
-        Транзакция отправлена. TXID: {txid.slice(0, 20)}...
+        Transaction sent. TXID: {txid.slice(0, 20)}...
       </div>
     )}
     </>
