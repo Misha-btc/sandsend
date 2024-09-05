@@ -6,7 +6,7 @@ import useSignPSBT from '../../Hooks/useSignPSBT';
 
 const CreateTransaction = () => {
   
-  const { input, outputs } = useTransaction();
+  const { input, outputs, edit } = useTransaction();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
   const [psbt, setPsbt] = useState(null);
@@ -56,6 +56,7 @@ const CreateTransaction = () => {
         title='Create PSBT'
         className='font-bold fixed w-38 m-8 p-1 text-white text-center rounded text-white bg-green-600 p-2 bottom-10 right-4 hover:bg-green-500 z-20'
         onClick={handleCreateTransaction}
+        disabled={edit}
       />
     )}
     {psbt && !signedPsbt && !txid && (

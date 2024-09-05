@@ -16,6 +16,7 @@ const AddRecipient = () => {
       setButtonColor('border-zinc-600 text-zinc-600'); // Цвет кнопки при редактировании
     } else if (outputs.length > 0 && !outputs[outputs.length - 1].amount && !outputs[outputs.length - 1].address) {
       setButtonColor('border-zinc-600 text-zinc-600'); // Цвет кнопки, если последний вывод пустой
+      setEdit(true);
     } else {
       setButtonColor('border-zinc-200 text-white'); // Цвет кнопки по умолчанию
     }
@@ -28,6 +29,7 @@ const AddRecipient = () => {
       return;
     } else {
       createEmptyOutput(true);
+      setEdit(true);
     }
   };
 
