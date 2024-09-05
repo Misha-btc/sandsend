@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import useConnectWallet from '../Hooks/useConnectWallet';
+import useDisconnectWallet from '../Hooks/useDisconnect';
 
 const WalletContext = createContext();
 
 export const WalletProvider = ({ children }) => {
   const { connectWallet } = useConnectWallet();
+  const { disconnectWallet } = useDisconnectWallet();
   const [isConnected, setIsConnected] = useState(false);
   const [paymentAddress, setPaymentAddress] = useState('');
   const [balance, setBalance] = useState(0);
@@ -43,6 +45,21 @@ export const WalletProvider = ({ children }) => {
     }
   };
 
+  const handleDisconnectWallet = async () => {
+    const result = await disconnectWallet();
+    if (result.success) {
+      setIsConnected(false);
+      setPaymentAddress('');
+      setOrdinalsAddress('');
+      setPaymentAddressType('');
+      setOrdinalsAddressType('');
+      setPublicKey('');
+      setOrdinalsPublicKey('');
+      setBalance(0);
+      localStorage.clear();
+    }
+  };
+
   return (
     <WalletContext.Provider value={{ 
       isConnected, 
@@ -54,7 +71,8 @@ export const WalletProvider = ({ children }) => {
       ordinalsAddressType,
       publicKey,
       updateBalance,
-      connectWallet: handleConnectWallet
+      connectWallet: handleConnectWallet,
+      disconnectWallet: handleDisconnectWallet
     }}>
       {children}
     </WalletContext.Provider>
