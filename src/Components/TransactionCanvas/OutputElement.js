@@ -117,6 +117,8 @@ const OutputElement = ({ output, index, removeOutput }) => {
   const handleRemoveOutput = () => {
     if (index > 0) {
       removeOutput(index);
+    } else if (index === 0) {
+      updateSpecificOutput(index, { amount: '', address: ''});
     }
     setAmount('');
     setAddress('');
