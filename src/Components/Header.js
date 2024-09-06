@@ -32,9 +32,11 @@ function Header() {
   return (
     <header className="bg-black text-white font-bold p-3 fixed left-0 top-0 right-0 w-full z-30">
       <div className='flex justify-between items-center max-w-6xl mx-auto relative'>
-        <div className='w-24 sm:w-32'>
-          <NetworkSwitch />
-        </div>
+        {!isConnected && (
+          <div className='w-24 sm:w-32'>
+            <NetworkSwitch />
+          </div>
+        )}
         <div className='w-full italic text-2xl sm:text-3xl text-center'>
           <img src={sandsend} alt="Sandsend" className="w-60 h-auto mx-auto" />
         </div>
