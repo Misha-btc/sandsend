@@ -1,13 +1,11 @@
-import React, { useState } from 'react';
-import { key, sandshrewMainnet, sandshrewSignet, sandshrewTestnet } from '../keystore';
+import React from 'react';
+import { useNetwork } from '../Contexts/NetworkContext';
 
 const NetworkSwitch = () => {
-  const [network, setNetwork] = useState('mainnet');
+  const { network, setNetwork } = useNetwork();
 
   const handleNetworkChange = (event) => {
     setNetwork(event.target.value);
-    // Здесь можно добавить логику для переключения сети
-    console.log(`Сеть изменена на: ${event.target.value}`);
   };
 
   return (

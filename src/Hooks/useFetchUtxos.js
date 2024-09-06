@@ -1,23 +1,29 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { useWallet } from '../Contexts/WalletContext';
+import { useNetwork } from '../Contexts/NetworkContext';
 
-// Кастомный хук для получения UTXO (Unspent Transaction Outputs)
-const useFetchUtxos = (url) => {
-    // Состояние для хранения списка UTXO по адресам
+const useFetchUtxos = () => {
+    const { url } = useNetwork();
     const [utxos, setUtxos] = useState({});
-    // Состояние для отслеживания загрузки данных
     const [loading, setLoading] = useState(false);
-    // Состояние для хранения деталей транзакций (ordinals и payment)
     const [transactionDetails, setTransactionDetails] = useState({});
-    const { paymentAddress, ordinalsAddress, paymentAddressType, ordinalsAddressType, publicKey, ordinalsPublicKey } = useWallet();
+    const { 
+        paymentAddress, 
+        ordinalsAddress, 
+        isConnected, 
+        paymentAddressType, 
+        ordinalsAddressType, 
+        publicKey, 
+        ordinalsPublicKey 
+    } = useWallet();
 
-    // Функция для получения UTXO по адресам
     const fetchUtxos = useCallback(() => {
-        setLoading(true); // Устанавливаем состояние загрузки в true
+        setLoading(true);
+        console.log(url);
 
-        if (!paymentAddress && !ordinalsAddress) {
-            setLoading(false); // Устанавливаем состояние загрузки в false
+        if (!paymentAddress && !ordinalsAddress && !isConnected) {
+            setLoading(false);
             return;
         }
 
@@ -26,52 +32,45 @@ const useFetchUtxos = (url) => {
             { purpose: 'ordinals', address: ordinalsAddress }
         ].filter(addr => addr.address);
 
-        // Создаем массив промисов для запросов UTXO по каждому адресу
         const fetchPromises = addresses.map(addr =>
             axios.post(url, {
-                jsonrpc: "2.0", // Версия протокола JSON-RPC
-                id: 1, // Идентификатор запроса
-                method: "esplora_address::utxo", // Метод API для получения UTXO
-                params: [addr.address] // Параметры запроса (адрес)
+                jsonrpc: "2.0",
+                id: 1,
+                method: "esplora_address::utxo",
+                params: [addr.address]
             }, {
                 headers: {
-                    'Content-Type': 'application/json' // Устанавливаем тип контента
+                    'Content-Type': 'application/json'
                 }
             })
         );
 
-        // Выполняем все запросы и обрабатываем результаты
         Promise.all(fetchPromises)
             .then(responses => {
-                const newUtxos = {}; // Создаем объект для новых UTXO
-                // Проходим по всем ответам
+                const newUtxos = {};
                 responses.forEach((response, index) => {
-                    const addressObj = addresses[index]; // Получаем текущий адрес
+                    const addressObj = addresses[index];
                     const key = `${addressObj.address}:${addressObj.purpose}`;
-                    // Если ответ содержит массив результатов, сохраняем его
                     if (response.data && Array.isArray(response.data.result)) {
                         newUtxos[key] = response.data.result;
                     } else {
-                        newUtxos[key] = []; // Иначе устанавливаем пустой массив
+                        newUtxos[key] = [];
                     }
                 });
-                setUtxos(newUtxos); // Обновляем состояние UTXO
-                // Логируем новые UTXO для отладки
+                setUtxos(newUtxos);
+                setLoading(false);
             })
             .catch(error => {
-                // Логируем ошибку если запросы завершились неудачно
                 console.error('Error fetching UTXOs:', error);
-                setLoading(false); // Останавливаем состояние загрузки в случае ошибки
+                setLoading(false);
             });
-    }, [url, paymentAddress, ordinalsAddress]); // Изменить зависимость для актуализации данных
+    }, [url, paymentAddress, ordinalsAddress, isConnected]);
 
     const fetchTransactionDetails = useCallback(async (utxos) => {
-        // Если нет UTXO, выходим из функции
-        if (!utxos || Object.keys(utxos).length === 0) return;
+        if (!utxos || Object.keys(utxos).length === 0 || !isConnected) return;
         
-        const txidVoutMap = {}; // Мапа для хранения соответствий txid:vout и ключа адреса с типом
-        const txidVoutArray = []; // Массив для хранения запросов деталей транзакций
-        // Проходим по всем UTXO и формируем массив запросов
+        const txidVoutMap = {};
+        const txidVoutArray = [];
         Object.entries(utxos).forEach(([key, utxoList]) => {
             utxoList.forEach(utxo => {
                 const txidVoutKey = `${utxo.txid}:${utxo.vout}`;
@@ -81,21 +80,18 @@ const useFetchUtxos = (url) => {
         });
         
         try {
-            // Отправляем запрос на получение деталей транзакций
             const response = await axios.post(url, {
-                jsonrpc: "2.0", // Версия протокола JSON-RPC
-                id: 1, // Идентификатор запроса
-                method: "sandshrew_multicall", // Метод API для получения деталей транзакций
-                params: txidVoutArray // Параметры запроса (txid и vout)
+                jsonrpc: "2.0",
+                id: 1,
+                method: "sandshrew_multicall",
+                params: txidVoutArray
             }, {
                 headers: {
-                    'Content-Type': 'application/json' // Устанавливаем тип контента
+                    'Content-Type': 'application/json'
                 }
             });
             const newTransactionDetails = {};
-            // Если ответ содержит массив результатов
             if (response.data && Array.isArray(response.data.result)) {
-                // Проходим по результатам запросов
                 response.data.result.forEach((res, index) => {
                     if (res.result) {
                         const key = txidVoutArray[index][1][0];
@@ -112,51 +108,41 @@ const useFetchUtxos = (url) => {
                         };
                     }
                 });
-                setTransactionDetails(newTransactionDetails); // Обновляем состояние деталей транзакций
-                // Сохраняем детали транзакций в localStorage
+                setTransactionDetails(newTransactionDetails);
                 localStorage.setItem('transactionDetails', JSON.stringify(newTransactionDetails));
-                // Логируем детали транзакций для отладки
             }
-            setLoading(false); // Останавливаем состояние загрузки
+            setLoading(false);
         } catch (error) {
-            // Логируем ошибку если запросы завершились неудачно
             console.error('Error fetching transaction details:', error);
-            setLoading(false); // Останавливаем состояние загрузки в случае ошибки
+            setLoading(false);
         }
-    }, [url, paymentAddressType, ordinalsAddressType, publicKey, ordinalsPublicKey]); // Зависимость от url
+    }, [url, paymentAddressType, ordinalsAddressType, publicKey, ordinalsPublicKey, isConnected]);
 
-    // Хук useEffect для получения UTXO при монтировании компонента
     useEffect(() => {
-        // Проверяем наличие сохраненных деталей транзакций в localStorage
         const storedDetails = localStorage.getItem('transactionDetails');
         if (storedDetails) {
             try {
-                const parsedDetails = JSON.parse(storedDetails); // Парсим сохраненные данные
-                // Если данные корректны, устанавливаем состояние
+                const parsedDetails = JSON.parse(storedDetails);
                 if (typeof parsedDetails === 'object' && parsedDetails !== null) {
                     setTransactionDetails(parsedDetails);
                 } else {
-                    fetchUtxos(); // Если данные некорректны, вызываем fetchUtxos
+                    fetchUtxos();
                 }
             } catch (error) {
-                // Логируем ошибку если данные не удалось распарсить
                 console.error('Error parsing stored transaction details:', error);
-                fetchUtxos(); // В случае ошибки вызываем fetchUtxos
+                fetchUtxos();
             }
         } else {
-            fetchUtxos(); // Если данных нет, вызываем fetchUtxos
+            fetchUtxos();
         }
-    }, [fetchUtxos]); // Зависимость от fetchUtxos
+    }, [fetchUtxos]);
 
-    // Хук useEffect для получения деталей транзакций при изменении UTXO
     useEffect(() => {
-        // Если есть UTXO, вызываем fetchTransactionDetails
         if (Object.values(utxos).flat().length > 0) {
             fetchTransactionDetails(utxos);
         }
-    }, [utxos, fetchTransactionDetails]); // Зависимость от utxos и fetchTransactionDetails
+    }, [utxos, fetchTransactionDetails]);
 
-    // Возвращаем состояния и функции
     return { utxos, loading, fetchUtxos, transactionDetails };
 };
 

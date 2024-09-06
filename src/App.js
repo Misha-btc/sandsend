@@ -7,20 +7,23 @@ import CreateTransaction from './Components/TransactionCanvas/CreateTransaction'
 import AddRecipient from './Components/AddRecipient';
 import { TransactionProvider } from './Contexts/TransactionContext';
 import { WalletProvider } from './Contexts/WalletContext';
+import { NetworkProvider } from './Contexts/NetworkContext';
 
 function App() {
   return (
     <React.StrictMode>
-      <WalletProvider>
-        <TransactionProvider>
-          <Header />
-          <AddUtxo />
-          <AddRecipient />
-          <CreateTransaction />
-          <TransactionCanvas />
-          <Footer />
-        </TransactionProvider>
-      </WalletProvider>
+      <NetworkProvider>
+        <WalletProvider>
+          <TransactionProvider>
+            <Header />
+            <AddUtxo />
+            <AddRecipient />
+            <CreateTransaction />
+            <TransactionCanvas />
+            <Footer />
+          </TransactionProvider>
+        </WalletProvider>
+      </NetworkProvider>
     </React.StrictMode>
   );
 }

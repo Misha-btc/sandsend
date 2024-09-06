@@ -31,7 +31,6 @@ const useConnectWallet = () => {
           walletAddresses[AddressPurpose.Ordinals] = ordinalsAddressItem;
         }
 
-        localStorage.setItem('walletAddresses', JSON.stringify(walletAddresses));
         console.log('CONNECT Wallet', walletAddresses);
 
         return { 

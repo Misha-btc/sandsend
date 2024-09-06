@@ -3,13 +3,13 @@ import Button from './Button';
 import { useWallet } from '../Contexts/WalletContext';
 import useFetchUtxos from '../Hooks/useFetchUtxos';
 import useGetBalance from '../Hooks/useGetBalance';
-import { key, sandshrewMainnet } from '../keystore';
 import sandsend from '../icons/sandsend.jpeg';
 import NetworkSwitch from './NetworkSwitch';
 
+
 function Header() {
   const { connectWallet, disconnectWallet, isConnected, paymentAddress, balance, updateBalance } = useWallet();
-  const { fetchUtxos } = useFetchUtxos(sandshrewMainnet + key);
+  const { fetchUtxos } = useFetchUtxos();
   const { fetchBalance } = useGetBalance();
 
   useEffect(() => {

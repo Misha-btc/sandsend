@@ -1,10 +1,11 @@
 import { useCallback } from 'react';
-import { key, sandshrewMainnet } from '../keystore';
 import axios from 'axios';
 import { useWallet } from '../Contexts/WalletContext';
+import { useNetwork } from '../Contexts/NetworkContext';
 
 const useGetBalance = () => {
   const { paymentAddress } = useWallet();
+  const { url } = useNetwork();
 
   const fetchBalance = useCallback(async () => {
     try {
@@ -12,7 +13,7 @@ const useGetBalance = () => {
         throw new Error('Адрес для платежей не найден');
       }
 
-      const response = await axios.post(sandshrewMainnet+key, {
+      const response = await axios.post(url, {
         jsonrpc: "2.0",
         id: 1,
         method: "esplora_address",
@@ -38,8 +39,8 @@ const useGetBalance = () => {
     } catch (error) {
       console.error('Ошибка при получении баланса:', error);
       return 0;
-    }
-  }, [paymentAddress]);
+        }
+    }, [paymentAddress, url]);
 
   return { fetchBalance };
 };

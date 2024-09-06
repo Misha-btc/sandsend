@@ -7,24 +7,30 @@ const WalletContext = createContext();
 export const WalletProvider = ({ children }) => {
   const { connectWallet } = useConnectWallet();
   const { disconnectWallet } = useDisconnectWallet();
+
+
   const [isConnected, setIsConnected] = useState(false);
   const [paymentAddress, setPaymentAddress] = useState('');
-  const [balance, setBalance] = useState(0);
   const [paymentAddressType, setPaymentAddressType] = useState('');
+  const [publicKey, setPublicKey] = useState('');
+
   const [ordinalsAddressType, setOrdinalsAddressType] = useState('');
   const [ordinalsAddress, setOrdinalsAddress] = useState('');
-  const [publicKey, setPublicKey] = useState('');
   const [ordinalsPublicKey, setOrdinalsPublicKey] = useState('');
+
+  const [balance, setBalance] = useState(0);
+
   useEffect(() => {
     const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
-    if (storedAddresses.payment && storedAddresses.payment.address && storedAddresses.ordinals && storedAddresses.ordinals.address) {
+    console.log('storedAddresses', storedAddresses);
+    if (storedAddresses.paymentAddress && storedAddresses.ordinalsAddress) {
       setIsConnected(true);
-      setPaymentAddress(storedAddresses.payment.address);
-      setOrdinalsAddress(storedAddresses.ordinals.address);
-      setPaymentAddressType(storedAddresses.payment.addressType);
-      setOrdinalsAddressType(storedAddresses.ordinals.addressType);
-      setPublicKey(storedAddresses.payment.publicKey);
-      setOrdinalsPublicKey(storedAddresses.ordinals.publicKey);
+      setPaymentAddress(storedAddresses.paymentAddress);
+      setOrdinalsAddress(storedAddresses.ordinalsAddress);
+      setPaymentAddressType(storedAddresses.paymentAddressType);
+      setOrdinalsAddressType(storedAddresses.ordinalsAddressType);
+      setPublicKey(storedAddresses.paymentPublicKey);
+      setOrdinalsPublicKey(storedAddresses.ordinalsPublicKey);
     }
   }, []);
 
@@ -35,6 +41,7 @@ export const WalletProvider = ({ children }) => {
   const handleConnectWallet = async () => {
     const result = await connectWallet();
     if (result.success) {
+      localStorage.setItem('walletAddresses', JSON.stringify(result));
       setIsConnected(true);
       setPaymentAddress(result.paymentAddress);
       setOrdinalsAddress(result.ordinalsAddress);
@@ -48,6 +55,7 @@ export const WalletProvider = ({ children }) => {
   const handleDisconnectWallet = async () => {
     const result = await disconnectWallet();
     if (result.success) {
+      localStorage.clear();
       setIsConnected(false);
       setPaymentAddress('');
       setOrdinalsAddress('');
@@ -56,7 +64,6 @@ export const WalletProvider = ({ children }) => {
       setPublicKey('');
       setOrdinalsPublicKey('');
       setBalance(0);
-      localStorage.clear();
     }
   };
 

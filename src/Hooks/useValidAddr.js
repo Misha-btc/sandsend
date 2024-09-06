@@ -1,18 +1,19 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
-import { key, sandshrewMainnet } from '../keystore';
+import { useNetwork } from '../Contexts/NetworkContext';
 
 const useValidAddr = () => {
   const [isValid, setIsValid] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { url } = useNetwork();
 
   const validateAddress = useCallback(async (address) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const response = await axios.post(sandshrewMainnet + key, {
+      const response = await axios.post(url, {
         jsonrpc: "2.0",
         id: 1,
         method: "btc_validateaddress",
@@ -35,7 +36,7 @@ const useValidAddr = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [url]);
 
   return { isValid, isLoading, error, validateAddress };
 };
