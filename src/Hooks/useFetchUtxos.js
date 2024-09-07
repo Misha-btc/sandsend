@@ -125,22 +125,36 @@ const useFetchUtxos = () => {
         if (!isConnected || (!paymentAddress && !ordinalsAddress)) {
             setTransactionDetails({});
             setUtxos({});
-            localStorage.clear();
+            localStorage.removeItem('transactionDetails');
             return;
         }
         setLoading(true);
         try {
             const fetchedUtxos = await fetchUtxos();
             console.log('fetchedUtxos', fetchedUtxos);
-            if (fetchedUtxos) {
+            if (fetchedUtxos && Object.keys(fetchedUtxos).length > 0) {
                 await fetchTransactionDetails(fetchedUtxos);
+            } else {
+                setTransactionDetails({});
+                localStorage.removeItem('transactionDetails');
             }
         } catch (error) {
             console.error('Error fetching data:', error);
+            setTransactionDetails({});
+            setUtxos({});
+            localStorage.removeItem('transactionDetails');
         } finally {
             setLoading(false);
         }
     }, [fetchUtxos, fetchTransactionDetails, isConnected, paymentAddress, ordinalsAddress]);
+
+    useEffect(() => {
+        if (!isConnected) {
+            setUtxos({});
+            setTransactionDetails({});
+            localStorage.removeItem('transactionDetails');
+        }
+    }, [isConnected]);
 
     useEffect(() => {
         const storedDetails = localStorage.getItem('transactionDetails');
