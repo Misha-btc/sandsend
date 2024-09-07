@@ -1,60 +1,56 @@
 import { useCallback } from 'react';
-import { request, AddressPurpose, RpcErrorCode } from 'sats-connect';
+import { getAddress, AddressPurpose, BitcoinNetworkType } from 'sats-connect';
+import { useNetwork } from '../Contexts/NetworkContext';
 
 // Кастомный хук для подключения кошелька
 const useConnectWallet = () => {
+  const { network } = useNetwork();
+
   const connectWallet = useCallback(async () => {
     try {
-      const options = {
-        purposes: ['payment', 'ordinals'],
-        message: "We need access to your wallet addresses to proceed.",
-      };
+      return new Promise((resolve, reject) => {
+        getAddress({
+          payload: {
+            purposes: [AddressPurpose.Payment, AddressPurpose.Ordinals],
+            message: "We need access to your wallet addresses to proceed.",
+            network: {
+              type: network === 'mainnet' ? BitcoinNetworkType.Mainnet : BitcoinNetworkType.Signet
+            },
+          },
+          onFinish: (response) => {
+            console.log('getAddress response:', response);
+            if (!response || !response.addresses) {
+              reject({ success: false, error: 'Invalid response from wallet' });
+              return;
+            }
+            const paymentAddressItem = response.addresses.find(
+              (address) => address.purpose === AddressPurpose.Payment
+            );
+            const ordinalsAddressItem = response.addresses.find(
+              (address) => address.purpose === AddressPurpose.Ordinals
+            );
 
-      const response = await request('getAccounts', options);
-
-      if (response.status === 'success') {
-        const walletAddresses = {};
-
-        const paymentAddressItem = response.result.find(
-          (address) => address.purpose === AddressPurpose.Payment
-        );
-
-        const ordinalsAddressItem = response.result.find(
-          (address) => address.purpose === AddressPurpose.Ordinals
-        );
-
-        if (paymentAddressItem) {
-          walletAddresses[AddressPurpose.Payment] = paymentAddressItem;
-        }
-
-        if (ordinalsAddressItem) {
-          walletAddresses[AddressPurpose.Ordinals] = ordinalsAddressItem;
-        }
-
-        console.log('CONNECT Wallet', walletAddresses);
-
-        return { 
-          success: true, 
-          paymentAddress: paymentAddressItem ? paymentAddressItem.address : null,
-          ordinalsAddress: ordinalsAddressItem ? ordinalsAddressItem.address : null,
-          paymentAddressType: paymentAddressItem ? paymentAddressItem.addressType : null,
-          ordinalsAddressType: ordinalsAddressItem ? ordinalsAddressItem.addressType : null,
-          paymentPublicKey: paymentAddressItem ? paymentAddressItem.publicKey : null,
-          ordinalsPublicKey: ordinalsAddressItem ? ordinalsAddressItem.publicKey : null
-        };
-      } else {
-        if (response.error.code === RpcErrorCode.USER_REJECTION) {
-          console.error('User canceled the request');
-        } else {
-          console.error('Error:', response.error.message);
-        }
-        return { success: false, error: response.error.message };
-      }
+            resolve({
+              success: true,
+              paymentAddress: paymentAddressItem?.address,
+              ordinalsAddress: ordinalsAddressItem?.address,
+              paymentAddressType: paymentAddressItem?.type,
+              ordinalsAddressType: ordinalsAddressItem?.type,
+              paymentPublicKey: paymentAddressItem?.publicKey,
+              ordinalsPublicKey: ordinalsAddressItem?.publicKey,
+              networkType: response.addresses[0]?.network?.type || network
+            });
+          },
+          onCancel: () => {
+            reject({ success: false, error: 'User canceled the request' });
+          },
+        });
+      });
     } catch (err) {
       console.error('Error connecting wallet:', err);
       return { success: false, error: err.message };
     }
-  }, []);
+  }, [network]);
 
   return { connectWallet };
 };

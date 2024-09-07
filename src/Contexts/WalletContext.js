@@ -67,18 +67,26 @@ export const WalletProvider = ({ children }) => {
   };
 
   const handleConnectWallet = async () => {
-    const result = await connectWallet();
-    if (result.success) {
-      localStorage.clear();
-      localStorage.setItem('walletAddresses', JSON.stringify(result));
-      setIsConnected(true);
-      localStorage.setItem('isConnected', JSON.stringify(true));
-      setPaymentAddress(result.paymentAddress);
-      setOrdinalsAddress(result.ordinalsAddress);
-      setPaymentAddressType(result.paymentAddressType);
-      setOrdinalsAddressType(result.ordinalsAddressType);
-      setPublicKey(result.paymentPublicKey);
-      setOrdinalsPublicKey(result.ordinalsPublicKey);
+    try {
+      const result = await connectWallet();
+      if (result.success) {
+        localStorage.clear();
+        localStorage.setItem('walletAddresses', JSON.stringify(result));
+        setIsConnected(true);
+        localStorage.setItem('isConnected', JSON.stringify(true));
+        setPaymentAddress(result.paymentAddress);
+        setOrdinalsAddress(result.ordinalsAddress);
+        setPaymentAddressType(result.paymentAddressType);
+        setOrdinalsAddressType(result.ordinalsAddressType);
+        setPublicKey(result.paymentPublicKey);
+        setOrdinalsPublicKey(result.ordinalsPublicKey);
+        setError('');
+      } else {
+        setError(result.error || 'Failed to connect wallet');
+      }
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+      setError(error.error || 'Failed to connect wallet');
     }
   };
 
