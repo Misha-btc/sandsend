@@ -26,6 +26,7 @@ function Header() {
     await disconnectWallet();
   };
 
+
   const displayAddress = paymentAddress ? `${paymentAddress.slice(0, 3)}...${paymentAddress.slice(-5)}` : '';
 
   return (

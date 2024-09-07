@@ -24,7 +24,7 @@ const useFetchUtxos = () => {
         if (!paymentAddress && !ordinalsAddress && !isConnected) {
             setTransactionDetails({});
             setLoading(false);
-            return;
+            return {};
         }
 
         const addresses = [
@@ -45,25 +45,27 @@ const useFetchUtxos = () => {
             })
         );
 
-        Promise.all(fetchPromises)
-            .then(responses => {
-                const newUtxos = {};
-                responses.forEach((response, index) => {
-                    const addressObj = addresses[index];
-                    const key = `${addressObj.address}:${addressObj.purpose}`;
-                    if (response.data && Array.isArray(response.data.result)) {
-                        newUtxos[key] = response.data.result;
-                    } else {
-                        newUtxos[key] = [];
-                    }
-                });
-                setUtxos(newUtxos);
-                setLoading(false);
-            })
-            .catch(error => {
-                console.error('Error fetching UTXOs:', error);
-                setLoading(false);
+        try {
+            const responses = await Promise.all(fetchPromises);
+            const newUtxos = {};
+            responses.forEach((response, index) => {
+                const addressObj = addresses[index];
+                const key = `${addressObj.address}:${addressObj.purpose}`;
+                if (response.data && Array.isArray(response.data.result)) {
+                    newUtxos[key] = response.data.result;
+                } else {
+                    newUtxos[key] = [];
+                }
             });
+            console.log('newUtxos', newUtxos);
+            setUtxos(newUtxos);
+            setLoading(false);
+            return newUtxos;
+        } catch (error) {
+            console.error('Error fetching UTXOs:', error);
+            setLoading(false);
+            return {};
+        }
     }, [url, paymentAddress, ordinalsAddress, isConnected]);
 
     const fetchTransactionDetails = useCallback(async (fetchedUtxos) => {
@@ -119,12 +121,17 @@ const useFetchUtxos = () => {
 
     const fetchAllData = useCallback(async () => {
         console.log('fetchAllData', isConnected, paymentAddress, ordinalsAddress);
+        console.log('localStorage', localStorage);
         if (!isConnected || (!paymentAddress && !ordinalsAddress)) {
+            setTransactionDetails({});
+            setUtxos({});
+            localStorage.clear();
             return;
         }
         setLoading(true);
         try {
             const fetchedUtxos = await fetchUtxos();
+            console.log('fetchedUtxos', fetchedUtxos);
             if (fetchedUtxos) {
                 await fetchTransactionDetails(fetchedUtxos);
             }
@@ -136,10 +143,10 @@ const useFetchUtxos = () => {
     }, [fetchUtxos, fetchTransactionDetails, isConnected, paymentAddress, ordinalsAddress]);
 
     useEffect(() => {
-        console.log('useEffect transactionDetails: and isConnected:', transactionDetails, isConnected);
         const storedDetails = localStorage.getItem('transactionDetails');
         console.log('useEffect storedDetails:', storedDetails);
-        if (storedDetails && isConnected) {
+        console.log('useEffffff:', localStorage);
+        if (storedDetails) {
             try {
                 const parsedDetails = JSON.parse(storedDetails);
                 if (typeof parsedDetails === 'object' && parsedDetails !== null) {
@@ -148,23 +155,10 @@ const useFetchUtxos = () => {
             } catch (error) {
                 console.error('Error parsing stored transaction details:', error);
             }
-        } else {
-            setTransactionDetails({});
         }
-    }, [isConnected]);
+    }, []);
 
-    useEffect(() => {
-        console.log('useEffect utxos:', utxos, isConnected);
-        if (Object.values(utxos).flat().length > 0 && isConnected) {
-            fetchTransactionDetails(utxos);
-        } else {
-            setTransactionDetails({});
-            setUtxos({});
-        }
-    }, [fetchTransactionDetails, isConnected]);
-
-
-    return { utxos, loading, fetchAllData, transactionDetails };
+    return { utxos, loading, fetchAllData, transactionDetails, setTransactionDetails, setUtxos };
 };
 
 export default useFetchUtxos;
