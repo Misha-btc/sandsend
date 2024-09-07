@@ -10,7 +10,7 @@ export const WalletProvider = ({ children }) => {
   const { connectWallet } = useConnectWallet();
   const { disconnectWallet } = useDisconnectWallet();
   const { fetchBalance } = useGetBalance();
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(JSON.parse(localStorage.getItem('isConnected')) || false);
   const [paymentAddress, setPaymentAddress] = useState('');
   const [paymentAddressType, setPaymentAddressType] = useState('');
   const [publicKey, setPublicKey] = useState('');
@@ -26,7 +26,6 @@ export const WalletProvider = ({ children }) => {
   useEffect(() => {
     const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
     if (storedAddresses.paymentAddress && storedAddresses.ordinalsAddress && !error) {
-      console.log('storedAddresses:', storedAddresses);
       setIsConnected(true);
       setPaymentAddress(storedAddresses.paymentAddress);
       setOrdinalsAddress(storedAddresses.ordinalsAddress);
@@ -34,10 +33,6 @@ export const WalletProvider = ({ children }) => {
       setOrdinalsAddressType(storedAddresses.ordinalsAddressType);
       setPublicKey(storedAddresses.paymentPublicKey);
       setOrdinalsPublicKey(storedAddresses.ordinalsPublicKey);
-    } else {
-      console.log('Not setting isConnected to true. Conditions not met.');
-      console.log('storedAddresses.paymentAddress:', storedAddresses);
-      console.log('error:', error);
     }
   }, [error, isConnected, paymentAddress]);
 
@@ -74,9 +69,10 @@ export const WalletProvider = ({ children }) => {
   const handleConnectWallet = async () => {
     const result = await connectWallet();
     if (result.success) {
-      console.log('handleConnectWalletContext:', result.paymentAddress);
+      localStorage.clear();
       localStorage.setItem('walletAddresses', JSON.stringify(result));
       setIsConnected(true);
+      localStorage.setItem('isConnected', JSON.stringify(true));
       setPaymentAddress(result.paymentAddress);
       setOrdinalsAddress(result.ordinalsAddress);
       setPaymentAddressType(result.paymentAddressType);
@@ -98,7 +94,6 @@ export const WalletProvider = ({ children }) => {
       setPublicKey('');
       setOrdinalsPublicKey('');
       setBalance(null);
-      console.log('handleDisconnectWalletContext: КОШЕЛЕК ОТКЛЮЧЕН');
     }
   };
 

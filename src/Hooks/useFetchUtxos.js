@@ -57,7 +57,6 @@ const useFetchUtxos = () => {
                     newUtxos[key] = [];
                 }
             });
-            console.log('newUtxos', newUtxos);
             setUtxos(newUtxos);
             setLoading(false);
             return newUtxos;
@@ -120,18 +119,9 @@ const useFetchUtxos = () => {
     }, [url, paymentAddressType, ordinalsAddressType, publicKey, ordinalsPublicKey, isConnected]);
 
     const fetchAllData = useCallback(async () => {
-        console.log('fetchAllData', isConnected, paymentAddress, ordinalsAddress);
-        console.log('localStorage', localStorage);
-        if (!isConnected || (!paymentAddress && !ordinalsAddress)) {
-            setTransactionDetails({});
-            setUtxos({});
-            localStorage.removeItem('transactionDetails');
-            return;
-        }
         setLoading(true);
         try {
             const fetchedUtxos = await fetchUtxos();
-            console.log('fetchedUtxos', fetchedUtxos);
             if (fetchedUtxos && Object.keys(fetchedUtxos).length > 0) {
                 await fetchTransactionDetails(fetchedUtxos);
             } else {
@@ -146,20 +136,26 @@ const useFetchUtxos = () => {
         } finally {
             setLoading(false);
         }
-    }, [fetchUtxos, fetchTransactionDetails, isConnected, paymentAddress, ordinalsAddress]);
+    }, [fetchUtxos, fetchTransactionDetails]);
 
     useEffect(() => {
+        let timeoutId;
         if (!isConnected) {
-            setUtxos({});
-            setTransactionDetails({});
-            localStorage.removeItem('transactionDetails');
+            timeoutId = setTimeout(() => {
+                setUtxos({});
+                setTransactionDetails({});
+                localStorage.removeItem('transactionDetails');
+            }, 1000); // 1 секунда задержки
         }
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
     }, [isConnected]);
 
     useEffect(() => {
         const storedDetails = localStorage.getItem('transactionDetails');
-        console.log('useEffect storedDetails:', storedDetails);
-        console.log('useEffffff:', localStorage);
         if (storedDetails) {
             try {
                 const parsedDetails = JSON.parse(storedDetails);

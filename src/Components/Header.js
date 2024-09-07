@@ -10,10 +10,7 @@ function Header() {
   const { fetchAllData } = useFetchUtxos();
 
   useEffect(() => {
-    if (isConnected && paymentAddress && balance !== null && !error) {
-      console.log('fetching all data' , paymentAddress, balance, error, isConnected);
-      fetchAllData();
-    } else if (!isConnected) {
+    if (isConnected && paymentAddress && balance !== 0 && !error && balance !== null) {
       fetchAllData();
     }
   }, [isConnected, paymentAddress, fetchAllData, balance, error]);
