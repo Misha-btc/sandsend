@@ -118,10 +118,10 @@ const useFetchUtxos = () => {
     }, [url, paymentAddressType, ordinalsAddressType, publicKey, ordinalsPublicKey, isConnected]);
 
     const fetchAllData = useCallback(async () => {
+        console.log('fetchAllData', isConnected, paymentAddress, ordinalsAddress);
         if (!isConnected || (!paymentAddress && !ordinalsAddress)) {
             return;
         }
-
         setLoading(true);
         try {
             const fetchedUtxos = await fetchUtxos();
@@ -136,9 +136,10 @@ const useFetchUtxos = () => {
     }, [fetchUtxos, fetchTransactionDetails, isConnected, paymentAddress, ordinalsAddress]);
 
     useEffect(() => {
+        console.log('useEffect transactionDetails: and isConnected:', transactionDetails, isConnected);
         const storedDetails = localStorage.getItem('transactionDetails');
-        if (storedDetails) {
-            console.log('storedDetails', storedDetails);
+        console.log('useEffect storedDetails:', storedDetails);
+        if (storedDetails && isConnected) {
             try {
                 const parsedDetails = JSON.parse(storedDetails);
                 if (typeof parsedDetails === 'object' && parsedDetails !== null) {
@@ -147,14 +148,20 @@ const useFetchUtxos = () => {
             } catch (error) {
                 console.error('Error parsing stored transaction details:', error);
             }
+        } else {
+            setTransactionDetails({});
         }
     }, [isConnected]);
 
     useEffect(() => {
-        if (Object.values(utxos).flat().length > 0) {
+        console.log('useEffect utxos:', utxos, isConnected);
+        if (Object.values(utxos).flat().length > 0 && isConnected) {
             fetchTransactionDetails(utxos);
+        } else {
+            setTransactionDetails({});
+            setUtxos({});
         }
-    }, [utxos, fetchTransactionDetails, isConnected]);
+    }, [fetchTransactionDetails, isConnected]);
 
 
     return { utxos, loading, fetchAllData, transactionDetails };

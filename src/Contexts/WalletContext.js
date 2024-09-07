@@ -26,6 +26,7 @@ export const WalletProvider = ({ children }) => {
   useEffect(() => {
     const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
     if (storedAddresses.paymentAddress && storedAddresses.ordinalsAddress && !error) {
+      console.log('storedAddresses:', storedAddresses);
       setIsConnected(true);
       setPaymentAddress(storedAddresses.paymentAddress);
       setOrdinalsAddress(storedAddresses.ordinalsAddress);
@@ -35,11 +36,10 @@ export const WalletProvider = ({ children }) => {
       setOrdinalsPublicKey(storedAddresses.ordinalsPublicKey);
     } else {
       console.log('Not setting isConnected to true. Conditions not met.');
-      console.log('storedAddresses.paymentAddress:', storedAddresses.paymentAddress);
-      console.log('storedAddresses.ordinalsAddress:', storedAddresses.ordinalsAddress);
+      console.log('storedAddresses.paymentAddress:', storedAddresses);
       console.log('error:', error);
     }
-  }, [error]);
+  }, [error, isConnected, paymentAddress]);
 
   useEffect(() => {
     const updateBalance = async () => {
@@ -74,6 +74,7 @@ export const WalletProvider = ({ children }) => {
   const handleConnectWallet = async () => {
     const result = await connectWallet();
     if (result.success) {
+      console.log('handleConnectWalletContext:', result.paymentAddress);
       localStorage.setItem('walletAddresses', JSON.stringify(result));
       setIsConnected(true);
       setPaymentAddress(result.paymentAddress);
@@ -97,6 +98,7 @@ export const WalletProvider = ({ children }) => {
       setPublicKey('');
       setOrdinalsPublicKey('');
       setBalance(null);
+      console.log('handleDisconnectWalletContext: КОШЕЛЕК ОТКЛЮЧЕН');
     }
   };
 

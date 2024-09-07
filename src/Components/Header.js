@@ -11,6 +11,7 @@ function Header() {
 
   useEffect(() => {
     if (isConnected && paymentAddress && balance !== null && !error) {
+      console.log('fetching all data' , paymentAddress, balance, error, isConnected);
       fetchAllData(paymentAddress);
     }
   }, [isConnected, paymentAddress, fetchAllData, balance, error]);
