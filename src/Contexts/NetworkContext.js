@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { key, sandshrewMainnet, sandshrewSignet, sandshrewTestnet } from '../keystore';
+import { key, sandshrewMainnet, sandshrewSignet } from '../keystore';
 
 const NetworkContext = createContext();
 
@@ -12,8 +12,6 @@ export const NetworkProvider = ({ children }) => {
     switch (net) {
       case 'mainnet':
         return sandshrewMainnet + key;
-      case 'testnet':
-        return sandshrewTestnet + key;
       case 'signet':
         return sandshrewSignet + key;
       default:

@@ -1,14 +1,15 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import useConnectWallet from '../Hooks/useConnectWallet';
 import useDisconnectWallet from '../Hooks/useDisconnect';
-
+import useGetBalance from '../Hooks/useGetBalance';
+import { MAINNET_PREFIX_LIST, SIGNET_PREFIX_LIST } from '../addrPrefix';
+import { useNetwork } from './NetworkContext';
 const WalletContext = createContext();
 
 export const WalletProvider = ({ children }) => {
   const { connectWallet } = useConnectWallet();
   const { disconnectWallet } = useDisconnectWallet();
-
-
+  const { fetchBalance } = useGetBalance();
   const [isConnected, setIsConnected] = useState(false);
   const [paymentAddress, setPaymentAddress] = useState('');
   const [paymentAddressType, setPaymentAddressType] = useState('');
@@ -17,13 +18,14 @@ export const WalletProvider = ({ children }) => {
   const [ordinalsAddressType, setOrdinalsAddressType] = useState('');
   const [ordinalsAddress, setOrdinalsAddress] = useState('');
   const [ordinalsPublicKey, setOrdinalsPublicKey] = useState('');
+  const [error, setError] = useState('');
+  const { network } = useNetwork();
 
-  const [balance, setBalance] = useState(0);
+  const [balance, setBalance] = useState(null);
 
   useEffect(() => {
     const storedAddresses = JSON.parse(localStorage.getItem('walletAddresses')) || {};
-    console.log('storedAddresses', storedAddresses);
-    if (storedAddresses.paymentAddress && storedAddresses.ordinalsAddress) {
+    if (storedAddresses.paymentAddress && storedAddresses.ordinalsAddress && !error) {
       setIsConnected(true);
       setPaymentAddress(storedAddresses.paymentAddress);
       setOrdinalsAddress(storedAddresses.ordinalsAddress);
@@ -31,8 +33,39 @@ export const WalletProvider = ({ children }) => {
       setOrdinalsAddressType(storedAddresses.ordinalsAddressType);
       setPublicKey(storedAddresses.paymentPublicKey);
       setOrdinalsPublicKey(storedAddresses.ordinalsPublicKey);
+    } else {
+      console.log('Not setting isConnected to true. Conditions not met.');
+      console.log('storedAddresses.paymentAddress:', storedAddresses.paymentAddress);
+      console.log('storedAddresses.ordinalsAddress:', storedAddresses.ordinalsAddress);
+      console.log('error:', error);
     }
-  }, []);
+  }, [error]);
+
+  useEffect(() => {
+    const updateBalance = async () => {
+      if (isConnected && paymentAddress) {
+        if (network === 'mainnet' && MAINNET_PREFIX_LIST.some(prefix => paymentAddress.startsWith(prefix))) {
+          // Логика для mainnet
+          const newBalance = await fetchBalance(paymentAddress);
+          setBalance(newBalance);
+          setIsConnected(true);
+          setError('');
+        } else if (network === 'signet' && SIGNET_PREFIX_LIST.some(prefix => paymentAddress.startsWith(prefix))) {
+          // Логика для signet
+          const newBalance = await fetchBalance(paymentAddress);
+          setBalance(newBalance);
+          setIsConnected(true);
+          setError('');
+        } else {
+          localStorage.clear();
+          setIsConnected(false);
+          setError('invalid network');
+          setBalance(null);
+        }
+      }
+    };
+    updateBalance();
+  }, [isConnected, paymentAddress, fetchBalance, network]);
 
   const updateBalance = (newBalance) => {
     setBalance(newBalance);
@@ -63,7 +96,7 @@ export const WalletProvider = ({ children }) => {
       setOrdinalsAddressType('');
       setPublicKey('');
       setOrdinalsPublicKey('');
-      setBalance(0);
+      setBalance(null);
     }
   };
 
@@ -74,9 +107,11 @@ export const WalletProvider = ({ children }) => {
       ordinalsAddress,
       ordinalsPublicKey,
       balance, 
+      error,
       paymentAddressType,
       ordinalsAddressType,
       publicKey,
+      setError,
       updateBalance,
       connectWallet: handleConnectWallet,
       disconnectWallet: handleDisconnectWallet

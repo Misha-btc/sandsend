@@ -1,29 +1,27 @@
 import React, { useEffect } from 'react';
 import Button from './Button';
 import { useWallet } from '../Contexts/WalletContext';
-import useFetchUtxos from '../Hooks/useFetchUtxos';
-import useGetBalance from '../Hooks/useGetBalance';
 import sandsend from '../icons/sandsend.jpeg';
 import NetworkSwitch from './NetworkSwitch';
-
+import useFetchUtxos from '../Hooks/useFetchUtxos';
 
 function Header() {
-  const { connectWallet, disconnectWallet, isConnected, paymentAddress, balance, updateBalance } = useWallet();
-  const { fetchUtxos } = useFetchUtxos();
-  const { fetchBalance } = useGetBalance();
+  const { connectWallet, disconnectWallet, isConnected, paymentAddress, balance, error, setError } = useWallet();
+  const { fetchAllData } = useFetchUtxos();
 
   useEffect(() => {
-    if (isConnected && paymentAddress) {
-      fetchUtxos();
-      fetchBalance().then(newBalance => updateBalance(newBalance));
+    if (isConnected && paymentAddress && balance !== null && !error) {
+      fetchAllData(paymentAddress);
     }
-  }, [isConnected, paymentAddress, fetchUtxos, fetchBalance, updateBalance]);
+  }, [isConnected, paymentAddress, fetchAllData, balance, error]);
 
   const handleConnectClick = async () => {
+    setError(null);
     await connectWallet();
   };
 
   const handleDisconnectClick = async () => {
+    setError(null);
     await disconnectWallet();
   };
 
@@ -40,17 +38,20 @@ function Header() {
         <div className='w-full italic text-2xl sm:text-3xl text-center'>
           <img src={sandsend} alt="Sandsend" className="w-60 h-auto mx-auto" />
         </div>
-        {isConnected ? (
-          <div className='w-24 sm:w-32 p-1 text-sm sm:text-base text-white text-center'>
+        {isConnected && !error ? (
+          <div className='w-24 sm:w-32 p-1 text-xs sm:text-base text-white text-center'>
             <div><Button onClick={handleDisconnectClick} title={displayAddress}/></div>
             <div className='text-xs'>{balance} sats</div>
           </div>
         ) : (
-          <Button 
-            onClick={handleConnectClick} 
-            title='connect' 
-            className='w-24 sm:w-32 p-1 text-sm sm:text-base text-white text-center rounded hover:bg-zinc-900 hover:text-glow'
-          />
+          <div className="flex flex-col items-center">
+            <Button 
+              onClick={handleConnectClick} 
+              title='connect' 
+              className='w-24 sm:w-32 p-1 text-sm sm:text-base text-white text-center rounded hover:bg-zinc-900 hover:text-glow'
+            />
+            {error && <div className="text-red-500 text-center text-[8px] mt-1">{error}</div>}
+          </div>
         )}
       </div>
     </header>

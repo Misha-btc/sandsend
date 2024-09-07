@@ -1,13 +1,11 @@
 import { useCallback } from 'react';
 import axios from 'axios';
-import { useWallet } from '../Contexts/WalletContext';
 import { useNetwork } from '../Contexts/NetworkContext';
 
 const useGetBalance = () => {
-  const { paymentAddress } = useWallet();
   const { url } = useNetwork();
 
-  const fetchBalance = useCallback(async () => {
+  const fetchBalance = useCallback(async (paymentAddress) => {
     try {
       if (!paymentAddress) {
         throw new Error('Адрес для платежей не найден');
@@ -39,8 +37,8 @@ const useGetBalance = () => {
     } catch (error) {
       console.error('Ошибка при получении баланса:', error);
       return 0;
-        }
-    }, [paymentAddress, url]);
+    }
+  }, [url]);
 
   return { fetchBalance };
 };

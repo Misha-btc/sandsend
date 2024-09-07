@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { key, sandshrewMainnet, sandshrewSignet, sandshrewTestnet } from '../keystore';
+import { key, sandshrewMainnet, sandshrewSignet } from '../keystore';
 
 const useNetwork = () => {
   const [network, setNetwork] = useState(() => {
@@ -10,8 +10,6 @@ const useNetwork = () => {
     switch (net) {
       case 'mainnet':
         return sandshrewMainnet + key;
-      case 'testnet':
-        return sandshrewTestnet + key;
       case 'signet':
         return sandshrewSignet + key;
       default:

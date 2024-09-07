@@ -799,6 +799,9 @@ video {
   font-size: 1.5rem;
   line-height: 2rem;
 }
+.text-\[8px\] {
+  font-size: 8px;
+}
 .text-sm {
   font-size: 0.875rem;
   line-height: 1.25rem;

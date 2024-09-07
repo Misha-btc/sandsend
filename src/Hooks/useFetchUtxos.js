@@ -18,11 +18,11 @@ const useFetchUtxos = () => {
         ordinalsPublicKey 
     } = useWallet();
 
-    const fetchUtxos = useCallback(() => {
+    const fetchUtxos = useCallback(async () => {
         setLoading(true);
-        console.log(url);
 
         if (!paymentAddress && !ordinalsAddress && !isConnected) {
+            setTransactionDetails({});
             setLoading(false);
             return;
         }
@@ -66,12 +66,11 @@ const useFetchUtxos = () => {
             });
     }, [url, paymentAddress, ordinalsAddress, isConnected]);
 
-    const fetchTransactionDetails = useCallback(async (utxos) => {
-        if (!utxos || Object.keys(utxos).length === 0 || !isConnected) return;
-        
+    const fetchTransactionDetails = useCallback(async (fetchedUtxos) => {
+        if (!fetchedUtxos || Object.keys(fetchedUtxos).length === 0 || !isConnected) return;
         const txidVoutMap = {};
         const txidVoutArray = [];
-        Object.entries(utxos).forEach(([key, utxoList]) => {
+        Object.entries(fetchedUtxos).forEach(([key, utxoList]) => {
             utxoList.forEach(utxo => {
                 const txidVoutKey = `${utxo.txid}:${utxo.vout}`;
                 txidVoutMap[txidVoutKey] = key;
@@ -110,40 +109,55 @@ const useFetchUtxos = () => {
                 });
                 setTransactionDetails(newTransactionDetails);
                 localStorage.setItem('transactionDetails', JSON.stringify(newTransactionDetails));
+                return newTransactionDetails;
             }
-            setLoading(false);
         } catch (error) {
             console.error('Error fetching transaction details:', error);
-            setLoading(false);
+            throw error;
         }
     }, [url, paymentAddressType, ordinalsAddressType, publicKey, ordinalsPublicKey, isConnected]);
+
+    const fetchAllData = useCallback(async () => {
+        if (!isConnected || (!paymentAddress && !ordinalsAddress)) {
+            return;
+        }
+
+        setLoading(true);
+        try {
+            const fetchedUtxos = await fetchUtxos();
+            if (fetchedUtxos) {
+                await fetchTransactionDetails(fetchedUtxos);
+            }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [fetchUtxos, fetchTransactionDetails, isConnected, paymentAddress, ordinalsAddress]);
 
     useEffect(() => {
         const storedDetails = localStorage.getItem('transactionDetails');
         if (storedDetails) {
+            console.log('storedDetails', storedDetails);
             try {
                 const parsedDetails = JSON.parse(storedDetails);
                 if (typeof parsedDetails === 'object' && parsedDetails !== null) {
                     setTransactionDetails(parsedDetails);
-                } else {
-                    fetchUtxos();
                 }
             } catch (error) {
                 console.error('Error parsing stored transaction details:', error);
-                fetchUtxos();
             }
-        } else {
-            fetchUtxos();
         }
-    }, [fetchUtxos]);
+    }, [isConnected]);
 
     useEffect(() => {
         if (Object.values(utxos).flat().length > 0) {
             fetchTransactionDetails(utxos);
         }
-    }, [utxos, fetchTransactionDetails]);
+    }, [utxos, fetchTransactionDetails, isConnected]);
 
-    return { utxos, loading, fetchUtxos, transactionDetails };
+
+    return { utxos, loading, fetchAllData, transactionDetails };
 };
 
 export default useFetchUtxos;
