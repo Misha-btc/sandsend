@@ -3,17 +3,24 @@ import { useTransaction } from '../../Contexts/TransactionContext';
 import useCreatePSBT from '../../Hooks/useCreatePSBT';
 import Button from '../Button'
 import useSignPSBT from '../../Hooks/useSignPSBT';
+import { useWallet } from '../../Contexts/WalletContext';
 
 const CreateTransaction = () => {
   
   const { input, outputs, edit } = useTransaction();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
+  const { isConnected } = useWallet();
   const [psbt, setPsbt] = useState(null);
   const [signedPsbt, setSignedPsbt] = useState(null);
   const [txid, setTxid] = useState(null);
 
+  if (!isConnected) {
+    return null;
+  }
+
   const handleCreateTransaction = () => {
+    console.log('input', input);
     const psbtInputs = input.map(input => ({
       tx_hash: input.txid,
       addressType: input.addressType,

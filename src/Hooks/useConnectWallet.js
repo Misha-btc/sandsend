@@ -18,7 +18,6 @@ const useConnectWallet = () => {
             },
           },
           onFinish: (response) => {
-            console.log('getAddress response:', response);
             if (!response || !response.addresses) {
               reject({ success: false, error: 'Invalid response from wallet' });
               return;
@@ -34,8 +33,8 @@ const useConnectWallet = () => {
               success: true,
               paymentAddress: paymentAddressItem?.address,
               ordinalsAddress: ordinalsAddressItem?.address,
-              paymentAddressType: paymentAddressItem?.type,
-              ordinalsAddressType: ordinalsAddressItem?.type,
+              paymentAddressType: paymentAddressItem?.addressType,
+              ordinalsAddressType: ordinalsAddressItem?.addressType,
               paymentPublicKey: paymentAddressItem?.publicKey,
               ordinalsPublicKey: ordinalsAddressItem?.publicKey,
               networkType: response.addresses[0]?.network?.type || network

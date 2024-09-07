@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import Modal from './Modal/Modal';
 import Button from './Button';
 import YourUtxo from './YourUtxo';
+import { useWallet } from '../Contexts/WalletContext';
 
 const AddUtxo = () => {
   const [showUtxo, setShowUtxo] = useState(false);
+  const { isConnected } = useWallet();
 
+  if (!isConnected) {
+    return null; // Ничего не рендерим, если кошелек не подключен
+  }
   return (
     <>
       <Button 

@@ -3,9 +3,15 @@ import { useTransaction } from '../../Contexts/TransactionContext';
 import OutputElement from './OutputElement';
 import InputElement from './InputElement';
 import Button from '../Button'; // Импортируем кнопку
+import { useWallet } from '../../Contexts/WalletContext';
 
 function TransactionCanvas() {
   const { outputs, removeOutput, input, removeInput, change, removeAll } = useTransaction();
+  const { isConnected } = useWallet();
+
+  if (!isConnected) {
+    return null; // Ничего не рендерим, если кошелек не подключен
+  }
 
   return (
     <div className="w-full min-h-screen h-full bg-zinc-900 pt-20 pb-10">

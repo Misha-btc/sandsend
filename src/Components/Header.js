@@ -29,31 +29,31 @@ function Header() {
   const displayAddress = paymentAddress ? `${paymentAddress.slice(0, 3)}...${paymentAddress.slice(-5)}` : '';
 
   return (
-    <header className="bg-black text-white font-bold p-3 fixed left-0 top-0 right-0 w-full z-30">
-      <div className='flex justify-between items-center max-w-6xl mx-auto relative'>
-        {!isConnected && (
-          <div className='w-24 sm:w-32'>
-            <NetworkSwitch />
-          </div>
-        )}
-        <div className='w-full italic text-2xl sm:text-3xl text-center'>
-          <img src={sandsend} alt="Sandsend" className="w-60 h-auto mx-auto" />
+    <header className="bg-black text-white font-bold p-2 fixed left-0 top-0 right-0 w-full z-30">
+      <div className='flex justify-between items-center max-w-6xl mx-auto relative h-12'>
+        <div className='w-24 sm:w-32 h-full flex items-center justify-start'>
+          {!isConnected && <NetworkSwitch />}
         </div>
-        {isConnected && !error ? (
-          <div className='w-24 sm:w-32 p-1 text-xs sm:text-base text-white text-center'>
-            <div><Button onClick={handleDisconnectClick} title={displayAddress}/></div>
-            <div className='text-xs'>{balance} sats</div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <Button 
-              onClick={handleConnectClick} 
-              title='connect' 
-              className='w-24 sm:w-32 p-1 text-sm sm:text-base text-white text-center rounded hover:bg-zinc-900 hover:text-glow'
-            />
-            {error && <div className="text-red-500 text-center text-[8px] mt-1">{error}</div>}
-          </div>
-        )}
+        <div className='flex-grow italic text-xl sm:text-2xl text-center h-full flex items-center justify-center'>
+          <img src={sandsend} alt="Sandsend" className="w-40 h-auto" />
+        </div>
+        <div className='w-24 sm:w-32 h-full flex items-center justify-end'>
+          {isConnected && !error ? (
+            <div className='text-xs sm:text-sm text-white text-center'>
+              <div><Button onClick={handleDisconnectClick} title={displayAddress}/></div>
+              <div className='text-xs mt-0.5'>{balance} sats</div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center w-full">
+              <Button 
+                onClick={handleConnectClick} 
+                title='connect' 
+                className='w-full p-1 text-xs sm:text-sm text-white text-center rounded hover:bg-zinc-900 hover:text-glow'
+              />
+              {error && <div className="text-red-500 text-center text-[8px] mt-0.5">{error}</div>}
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );

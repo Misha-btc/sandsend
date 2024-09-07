@@ -1,26 +1,23 @@
 import React, { useState, useEffect } from 'react';
-import Modal from './Modal/Modal';
 import Button from './Button';
 import { useWallet } from '../Contexts/WalletContext';
-import { useAddRecipient } from '../Hooks/useAddRecipient';
 import { useTransaction } from '../Contexts/TransactionContext';
 
 const AddRecipient = () => {
-  const [showModal, setShowModal] = useState(false);
-  const { isConnected, connectWallet, balance } = useWallet();
+  const { isConnected } = useWallet();
   const { outputs, createEmptyOutput, edit, setEdit } = useTransaction();
   const [buttonColor, setButtonColor] = useState('bg-zinc-900');
 
   useEffect(() => {
     if (edit) {
-      setButtonColor('border-zinc-600 text-zinc-600'); // Цвет кнопки при редактировании
+      setButtonColor('border-zinc-600 text-zinc-600');
     } else if (outputs.length > 0 && !outputs[outputs.length - 1].amount && !outputs[outputs.length - 1].address) {
-      setButtonColor('border-zinc-600 text-zinc-600'); // Цвет кнопки, если последний вывод пустой
+      setButtonColor('border-zinc-600 text-zinc-600');
       setEdit(true);
     } else {
-      setButtonColor('border-zinc-200 text-white'); // Цвет кнопки по умолчанию
+      setButtonColor('border-zinc-200 text-white');
     }
-  }, [edit, outputs]);
+  }, [edit, outputs, setEdit]);
 
   const handleAddRecipient = () => {
     if (edit) {
@@ -32,6 +29,10 @@ const AddRecipient = () => {
       setEdit(true);
     }
   };
+
+  if (!isConnected) {
+    return null;
+  }
 
   return (
     <>
