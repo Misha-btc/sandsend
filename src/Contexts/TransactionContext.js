@@ -25,6 +25,7 @@ export const TransactionProvider = ({ children }) => {
     index: '',
   });
 
+  const [inputError, setInputError] = useState('');
   const [rawTx, setRawTx] = useState('');
   const [change, setChange] = useState(0);
   const [removeAllUtxo, setRemoveAllUtxo] = useState(false);
@@ -46,6 +47,7 @@ export const TransactionProvider = ({ children }) => {
   }, []);
 
   const removeOutput = useCallback((index) => {
+    setEdit(false);
     setOutputs(prevOutputs => prevOutputs.filter((_, i) => i !== index));
   }, []);
 
@@ -64,6 +66,7 @@ export const TransactionProvider = ({ children }) => {
 
   const removeAll = useCallback(() => {
     setRemoveAllUtxo(true);
+    setEdit(false);
     setTemporaryOutput({
       address: '',
       amount: '',
@@ -159,7 +162,7 @@ export const TransactionProvider = ({ children }) => {
     if (selectedAmount >= totalOutputAmount) {
       setInput(selectedUtxos);
     } else {
-      console.log('Недостаточно UTXO для покрытия суммы');
+      setInputError('Недостаточно UTXO для покрытия суммы');
     }
   }, [outputs, temporaryOutput]);
 
@@ -210,6 +213,8 @@ export const TransactionProvider = ({ children }) => {
       rawTx,
       removeAllUtxo,
       edit,
+      inputError,
+      setInputError,
       setEdit,
       removeAll,
       updateInput,

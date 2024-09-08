@@ -4,9 +4,10 @@ import { useWallet } from '../Contexts/WalletContext';
 import sandsend from '../icons/sandsend.jpeg';
 import NetworkSwitch from './NetworkSwitch';
 import useFetchUtxos from '../Hooks/useFetchUtxos';
-
+import { useTransaction } from '../Contexts/TransactionContext';
 function Header() {
   const { connectWallet, disconnectWallet, isConnected, paymentAddress, balance, error, setError } = useWallet();
+  const { removeAll } = useTransaction();
   const { fetchAllData } = useFetchUtxos();
 
   useEffect(() => {
@@ -22,6 +23,7 @@ function Header() {
 
   const handleDisconnectClick = async () => {
     setError(null);
+    removeAll()
     await disconnectWallet();
   };
 

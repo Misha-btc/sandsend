@@ -13,7 +13,16 @@ const OutputElement = ({ output, index, removeOutput }) => {
   const [indexEdit, setIndexEdit] = useState(false);
   const [amount, setAmount] = useState(output.amount);
   const [address, setAddress] = useState(output.address);
-  const { updateSpecificOutput, change, temporaryOutput, setTemporaryOutput, edit, setEdit, outputs } = useTransaction();
+  const { 
+    updateSpecificOutput, 
+    change, 
+    temporaryOutput, 
+    setTemporaryOutput, 
+    setEdit, 
+    outputs, 
+    inputError, 
+    setInputError 
+  } = useTransaction();
 
   const handleFormatChange = (e) => {
     const newFormat = e.target.value;
@@ -43,6 +52,8 @@ const OutputElement = ({ output, index, removeOutput }) => {
     } else if ((coinFormat === 'sats' && Number(amount) > balance) || 
     (coinFormat === 'btc' && Number(amount) > balance / 100000000)) {
       return 'amount is greater than balance';
+    } else if (inputError) {
+      return inputError;
     } else {
       return '';
     }
@@ -56,6 +67,7 @@ const OutputElement = ({ output, index, removeOutput }) => {
     const [integerPart, decimalPart] = newAmount.split('.');
     const formattedAmount = decimalPart ? `${integerPart}.${decimalPart.slice(0, 8)}` : newAmount;
     setErrors({ ...errors, amountError: '' });
+    setInputError('');
     setAmount(formattedAmount);
     // Обновляем временный вывод при изменении суммы
     setTemporaryOutput({ amount: formattedAmount, index, coinFormat });
