@@ -68,7 +68,7 @@ function YourUtxo() {
     };
 
     return (
-        <div>
+        <div className="flex flex-col h-full">
             <div className='flex items-center border-b p-2 bg-black text-white sticky top-0 z-10 font-black text-xl'>
                 <button 
                     onClick={handleRefresh} 
@@ -80,11 +80,11 @@ function YourUtxo() {
                 <div className='w-full text-center'>my UTXOs</div>
                 <AddressButton addressType={type} onClick={toggleAddressPurpose} />
             </div>
-            <div className="">
+            <div className="flex-grow flex items-center justify-center">
                 {loading ? (
-                    <p>Loading UTXOs...</p>
+                    <p className="text-center font-bold text-xl text-gray-500">Loading UTXOs...</p>
                 ) : Object.keys(sortedTransactionDetails).length > 0 ? (
-                    <div>
+                    <div className="w-full">
                         {Object.entries(sortedTransactionDetails).map(([key, detail]) => (
                             <div 
                                 key={key} 
@@ -110,7 +110,7 @@ function YourUtxo() {
                         ))}
                     </div>
                 ) : (
-                    <p>No UTXOs found. {isConnected ? 'Try refreshing the data.' : 'Please connect your wallet.'}</p>
+                    <p className="text-center font-bold text-xl text-gray-500">No UTXOs found. {isConnected ? 'Try refreshing the data.' : 'Please connect your wallet.'}</p>
                 )}
             </div>
         </div>

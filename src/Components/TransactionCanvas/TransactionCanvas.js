@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useTransaction } from '../../Contexts/TransactionContext';
 import OutputElement from './OutputElement';
 import InputElement from './InputElement';
 import Button from '../Button'; // Импортируем кнопку
 import { useWallet } from '../../Contexts/WalletContext';
+import CreateTransaction from './CreateTransaction';
 
 function TransactionCanvas() {
   const { outputs, removeOutput, input, removeInput, change, removeAll } = useTransaction();
@@ -63,6 +64,7 @@ function TransactionCanvas() {
           className="bg-cyan-400 text-white p-2 rounded bg-opacity-60 hover:bg-opacity-80" // Использована bg-opacity для прозрачности
         />
       </div>
+      <CreateTransaction />
     </div>
   );
 }

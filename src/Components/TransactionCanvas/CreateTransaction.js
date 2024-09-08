@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTransaction } from '../../Contexts/TransactionContext';
 import useCreatePSBT from '../../Hooks/useCreatePSBT';
 import Button from '../Button'
@@ -6,7 +6,6 @@ import useSignPSBT from '../../Hooks/useSignPSBT';
 import { useWallet } from '../../Contexts/WalletContext';
 
 const CreateTransaction = () => {
-  
   const { input, outputs, edit } = useTransaction();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
@@ -14,6 +13,12 @@ const CreateTransaction = () => {
   const [psbt, setPsbt] = useState(null);
   const [signedPsbt, setSignedPsbt] = useState(null);
   const [txid, setTxid] = useState(null);
+
+  useEffect(() => {
+    setPsbt(null);
+    setSignedPsbt(null);
+    setTxid(null);
+  }, [input, outputs]);
 
   if (!isConnected) {
     return null;

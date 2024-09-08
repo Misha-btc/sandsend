@@ -58,7 +58,6 @@ const useFetchUtxos = () => {
                 }
             });
             setUtxos(newUtxos);
-            setLoading(false);
             return newUtxos;
         } catch (error) {
             console.error('Error fetching UTXOs:', error);
