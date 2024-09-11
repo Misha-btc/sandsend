@@ -35,15 +35,11 @@ const AddRecipient = () => {
   }
 
   return (
-    <>
-      <Button 
-        onClick={handleAddRecipient} 
-        title="+" 
-        className={`fixed rounded-full bg-zinc-900 
-        border-4 text-sm w-10 h-16 top-20 
-        right-5 hover:bg-zinc-950 z-10 flex items-center justify-center ${buttonColor} `}
-      />
-    </>
+    <Button 
+      onClick={handleAddRecipient} 
+      title="+" 
+      className={`rounded-full bg-zinc-900 border-4 text-sm w-10 h-10 hover:bg-zinc-950 flex items-center justify-center ${buttonColor}`}
+    />
   );
 };
 

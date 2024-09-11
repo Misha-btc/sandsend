@@ -6,13 +6,15 @@ import useSignPSBT from '../../Hooks/useSignPSBT';
 import { useWallet } from '../../Contexts/WalletContext';
 
 const CreateTransaction = () => {
-  const { input, outputs, edit } = useTransaction();
+  const { input, outputs, edit, change, fee } = useTransaction();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
-  const { isConnected } = useWallet();
+  const { isConnected, paymentAddress, paymentAddressType, publicKey } = useWallet();
   const [psbt, setPsbt] = useState(null);
   const [signedPsbt, setSignedPsbt] = useState(null);
   const [txid, setTxid] = useState(null);
+
+  console.log('signedPsbt', signedPsbt);
 
   useEffect(() => {
     setPsbt(null);
@@ -38,6 +40,25 @@ const CreateTransaction = () => {
       address: output.address,
       value: output.amount
     }));
+
+/* 
+    if (change < fee) {
+      psbtInputs.push({
+        tx_hash: 'dummy_txid_for_change',
+        addressType: paymentAddressType,
+        pubkey: publicKey,
+        tx_output_n: 0,
+        value: change
+      });
+    } */
+
+    // Добавляем дополнительный выход, если (change - fee) > 600
+    if (change - fee > 600) {
+      psbtOutputs.push({
+        address: paymentAddress,
+        value: change - fee
+      });
+    }
 
     const psbtB64 = createPSBT(psbtInputs, psbtOutputs);
     console.log('PSBT Base64:', psbtB64);

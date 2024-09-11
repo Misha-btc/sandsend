@@ -5,10 +5,13 @@ import sandsend from '../icons/sandsend.jpeg';
 import NetworkSwitch from './NetworkSwitch';
 import useFetchUtxos from '../Hooks/useFetchUtxos';
 import { useTransaction } from '../Contexts/TransactionContext';
+import MempoolComponent from './mempoolFee';
+
 function Header() {
   const { connectWallet, disconnectWallet, isConnected, paymentAddress, balance, error, setError } = useWallet();
   const { removeAll } = useTransaction();
   const { fetchAllData } = useFetchUtxos();
+
 
   useEffect(() => {
     if (isConnected && paymentAddress && balance !== 0 && !error && balance !== null) {
@@ -34,7 +37,7 @@ function Header() {
     <header className="bg-black text-white font-bold p-2 fixed left-0 top-0 right-0 w-full z-30">
       <div className='flex justify-between items-center max-w-6xl mx-auto relative h-12'>
         <div className='w-24 sm:w-32 h-full flex items-center justify-start'>
-          {!isConnected && <NetworkSwitch />}
+          {!isConnected ?<NetworkSwitch /> : <MempoolComponent />}
         </div>
         <div className='flex-grow italic text-xl sm:text-2xl text-center h-full flex items-center justify-center'>
           <img src={sandsend} alt="Sandsend" className="w-40 h-auto" />

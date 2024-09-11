@@ -3,10 +3,10 @@ import Header from './Components/Header';
 import Footer from './Components/Footer';
 import AddUtxo from './Components/AddUtxo';
 import TransactionCanvas from './Components/TransactionCanvas/TransactionCanvas';
-import AddRecipient from './Components/AddRecipient';
 import { TransactionProvider } from './Contexts/TransactionContext';
 import { WalletProvider } from './Contexts/WalletContext';
 import { NetworkProvider } from './Contexts/NetworkContext';
+import { FeesProvider } from './Contexts/feesContext';
 
 function App() {
   return (
@@ -14,11 +14,12 @@ function App() {
       <NetworkProvider>
         <WalletProvider>
           <TransactionProvider>
-            <Header />
-            <AddUtxo />
-            <AddRecipient />
-            <TransactionCanvas />
-            <Footer />
+            <FeesProvider>
+              <Header />
+              <AddUtxo />
+              <TransactionCanvas />
+              <Footer />
+            </FeesProvider>
           </TransactionProvider>
         </WalletProvider>
       </NetworkProvider>

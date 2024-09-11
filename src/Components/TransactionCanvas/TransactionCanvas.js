@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTransaction } from '../../Contexts/TransactionContext';
-import OutputElement from './OutputElement';
+import Output from './Output';
 import InputElement from './InputElement';
+import FeeElement from './FeeElement';
 import Button from '../Button'; // Импортируем кнопку
 import { useWallet } from '../../Contexts/WalletContext';
 import CreateTransaction from './CreateTransaction';
+import AddRecipient from '../AddRecipient';
 
 function TransactionCanvas() {
   const { outputs, removeOutput, input, removeInput, change, removeAll } = useTransaction();
@@ -43,7 +45,7 @@ function TransactionCanvas() {
             <div className="flex flex-col items-center">
               {outputs.length > 0 ? (
                 outputs.map((output, index) => (
-                  <OutputElement
+                  <Output
                     key={index}
                     output={output}
                     index={index}
@@ -53,15 +55,18 @@ function TransactionCanvas() {
               ) : (
                 <p className="text-gray-400">Нет выходов для отображения</p>
               )}
-            </div>
+              <AddRecipient />
+            </div> 
+            
           </div>
         </div>
       </div>
+      <FeeElement />
       <div className="fixed bottom-16 left-16">
         <Button
           title="Clear"
           onClick={removeAll}
-          className="bg-cyan-400 text-white p-2 rounded bg-opacity-60 hover:bg-opacity-80" // Использована bg-opacity для прозрачности
+          className="bg-cyan-600 text-white p-2 rounded hover:bg-cyan-500" // Использована bg-opacity для прозрачности
         />
       </div>
       <CreateTransaction />
