@@ -20,9 +20,7 @@ const AddRecipient = () => {
   }, [edit, outputs, setEdit]);
 
   const handleAddRecipient = () => {
-    if (edit) {
-      return;
-    } else if (outputs.length > 0 && !outputs[outputs.length - 1].amount && !outputs[outputs.length - 1].address) {
+    if (edit || (outputs.length > 0 && !outputs[outputs.length - 1].amount && !outputs[outputs.length - 1].address)) {
       return;
     } else {
       createEmptyOutput(true);

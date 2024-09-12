@@ -10,7 +10,7 @@ const FeesContext = createContext();
 
 export const FeesProvider = ({ children }) => {
   const [feeRate, setFeeRate] = useState(1); // Устанавливаем начальное значение 1 sat/vByte
-  const { outputs, input, change } = useTransaction();
+  const { outputs, input, change, inputRef, balance } = useTransaction();
   const { paymentAddressType } = useWallet();
   const [feeState, setFeeState] = useState('medium');
   const [totalFee, setTotalFee] = useState(0);
@@ -23,16 +23,15 @@ export const FeesProvider = ({ children }) => {
       if (feeState !== 'custom') {
         const index = feeState === 'low' ? 1 : feeState === 'medium' ? 2 : feeState === 'high' ? 3 : 0;
         if (fees && fees[index]) {
-          const totalFee = Math.ceil(fees[index] * totalVBytes);
-          return totalFee.toFixed(2);
+          return Math.ceil(fees[index] * totalVBytes);
         } else {
           return 0;
         }
       } else {
-        const totalFee = customFee * totalVBytes;
-        return totalFee.toFixed(0);
+        return customFee * totalVBytes;
       }
     }
+    let feeSum = totalFee;
 
     const bytesPerType = {
       p2pkh: { input: 148, output: 34 },
@@ -44,6 +43,7 @@ export const FeesProvider = ({ children }) => {
 
     let totalVBytes = 0;
     let witnessSize = 0;
+    let inputTotalAmount = 0;
 
     // Добавляем размер заголовка транзакции
     totalVBytes += 4 + // nVersion
@@ -58,6 +58,7 @@ export const FeesProvider = ({ children }) => {
           const inputType = inputItem.addressType.toLowerCase();
           if (bytesPerType[inputType]) {
             totalVBytes += bytesPerType[inputType].input;
+            inputTotalAmount += inputItem.value;
             if (inputType.startsWith('p2w')) {
               witnessSize += inputType === 'p2wpkh' ? 107 : 65;
             }
@@ -77,15 +78,24 @@ export const FeesProvider = ({ children }) => {
         }
       });
     }
+    console.log(`input: ${input.length} feeSum: ${feeSum} totalfee ${totalFee}`);
     // Если есть сдача за вычетом комиссии больше 1000, то прибавляем вес сдачи
-    if (change - totalFee >= 1000 && paymentAddressType) {
+    if (change - feeSum >= 1000 && paymentAddressType) {
       totalVBytes += bytesPerType[paymentAddressType].output;
-    } else if (change - totalFee > 0 && change - totalFee < 1000 && paymentAddressType) {
+    } else if (change - feeSum >= 0 && change - feeSum < 1000 && paymentAddressType) {
       
-    } else if (change - totalFee < 0 && paymentAddressType) {
-      totalVBytes += bytesPerType[paymentAddressType].input;
-    }
+    } else if (change - feeSum < 0 && paymentAddressType && !(balance - inputTotalAmount > inputTotalAmount + feeSum)) {
 
+      const selectedUtxos = selectOptimalFee(feeSum, change, input);
+      const selectedAmount = selectedUtxos && selectedUtxos.length > 0
+        ? selectedUtxos.reduce((sum, utxo) => sum + utxo.value, 0)
+        : 0;
+      const inputCaunt = selectedUtxos ? selectedUtxos.length : 0;
+      console.log(`inputCaunt: ${inputCaunt}`);
+      totalVBytes += bytesPerType[paymentAddressType].input * inputCaunt;
+    } else {
+      return { totalVBytes: 0, fee: 0 };
+    }
 
     // Добавляем размер свидетеля (witness)
     if (witnessSize > 0) {
@@ -96,23 +106,26 @@ export const FeesProvider = ({ children }) => {
     totalVBytes = Math.ceil(totalVBytes);
 
     // Вычисляем комиссию
-    setTotalFee(getFeeValue(totalVBytes));
-
-    return totalVBytes;
+    const calculatedTotalVBytes = Math.ceil(totalVBytes);
+    const calculatedFee = getFeeValue(calculatedTotalVBytes);
+    
+    return { totalVBytes: calculatedTotalVBytes, fee: calculatedFee };
   }, [
     paymentAddressType, 
-    input, 
+    input,
+    selectOptimalFee, 
     outputs, 
     change,
+    balance,
+    totalFee,
     customFee,
     feeState,
-    fees,
-    setTotalFee,
-    totalFee,
+    fees
   ]);
 
   useEffect(() => {
-    calcEstimatedFee();
+    const { fee } = calcEstimatedFee();
+    setTotalFee(fee);
   }, [calcEstimatedFee]);
 
   return (

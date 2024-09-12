@@ -1,27 +1,44 @@
 import { useCallback } from 'react';
 
 const useFeeSelect = () => {
-  const selectOptimalFee = useCallback((totalFee, change) => {
+  const selectOptimalFee = useCallback((totalFee, change, input) => {
     const storedDetails = localStorage.getItem('transactionDetails');
-    if (!storedDetails) return null;
+    if (!storedDetails) return;
+
+    let feeUtxos = [];
+    let selectedUtxos = input.filter(utxo => utxo.type === 'selected' || utxo.type === 'auto');
 
     const transactionDetails = JSON.parse(storedDetails);
-    const feeInput = Object.entries(transactionDetails)
+    const utxosArray = Object.entries(transactionDetails)
       .filter(([addressType]) => addressType.includes(':payment'))
       .flatMap(([_, utxos]) => Object.entries(utxos).map(([utxoKey, utxoDetails]) => ({
         ...utxoDetails,
         txid: utxoKey.split(':')[0],
         vout: parseInt(utxoKey.split(':')[1]),
         key: utxoKey,
-        type: 'auto'
+        type: 'fee'
       })))
-      .sort((a, b) => a.value - b.value); // Сортируем по возрастанию, чтобы выбрать минимально необходимый UTXO
+      .sort((a, b) => b.value - a.value);
 
-    const requiredAmount = totalFee - change;
-    const feeUtxo = feeInput.find(utxo => utxo.value >= requiredAmount);
+    const availableUtxos = utxosArray.filter(utxo => 
+      !selectedUtxos.some(selectedUtxo => selectedUtxo.txid === utxo.txid && selectedUtxo.vout === utxo.vout)
+    );
+    
+    let requiredAmount = change - totalFee;
+    console.log(`change: ${change}`);
+    console.log(`totalFee: ${totalFee}`);
+    console.log(`requiredAmount: ${requiredAmount}`);
 
-    if (feeUtxo) {
-      return feeUtxo;
+    for (const utxo of availableUtxos) {
+        if (requiredAmount >= 0) break;
+        selectedUtxos.push(utxo);
+        feeUtxos.push(utxo);
+        requiredAmount += utxo.value;
+      }
+
+    console.log(feeUtxos);
+    if (requiredAmount >= 0) {
+      return feeUtxos;
     }
     return null;
   }, []);
