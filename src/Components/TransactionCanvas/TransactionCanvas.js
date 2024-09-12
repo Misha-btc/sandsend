@@ -38,7 +38,7 @@ function TransactionCanvas() {
               )}
             </div>
           </div>
-          <h2 className="text-green-500 text-xl mb-4 text-center">CHANGE {change}</h2>
+          <h2 className="text-green-500 text-xl mb-4 absolute top-50 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">CHANGE {change}</h2>
           {/* Правая часть экрана с выходными элементами */}
           <div className="w-1/2 pl-4">
             <h2 className="text-white text-xl mb-4 text-center">OUTPUTS</h2>
@@ -60,6 +60,7 @@ function TransactionCanvas() {
             
           </div>
         </div>
+
       </div>
       <FeeElement />
       <div className="fixed bottom-16 left-16">

@@ -1,17 +1,39 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useTransaction } from './TransactionContext';
+import { useWallet } from './WalletContext';
+import useMempoolInfo from '../Hooks/useMempoolInfo';
+import useFeeSelect from '../Hooks/useFeeSelect';
+
 
 
 const FeesContext = createContext();
 
 export const FeesProvider = ({ children }) => {
-  const [estimatedFee, setEstimatedFee] = useState(0);
   const [feeRate, setFeeRate] = useState(1); // Устанавливаем начальное значение 1 sat/vByte
-  const { outputs, input } = useTransaction();
+  const { outputs, input, change } = useTransaction();
+  const { paymentAddressType } = useWallet();
   const [feeState, setFeeState] = useState('medium');
+  const [totalFee, setTotalFee] = useState(0);
+  const { fees } = useMempoolInfo();
+  const [customFee, setCustomFee] = useState('');
+  const selectOptimalFee = useFeeSelect();
 
+  const calcEstimatedFee = useCallback(() => {
+    const getFeeValue = (totalVBytes) => {
+      if (feeState !== 'custom') {
+        const index = feeState === 'low' ? 1 : feeState === 'medium' ? 2 : feeState === 'high' ? 3 : 0;
+        if (fees && fees[index]) {
+          const totalFee = Math.ceil(fees[index] * totalVBytes);
+          return totalFee.toFixed(2);
+        } else {
+          return 0;
+        }
+      } else {
+        const totalFee = customFee * totalVBytes;
+        return totalFee.toFixed(0);
+      }
+    }
 
-  const calcEstimatedFee = () => {
     const bytesPerType = {
       p2pkh: { input: 148, output: 34 },
       p2sh: { input: 91, output: 32 },
@@ -55,6 +77,15 @@ export const FeesProvider = ({ children }) => {
         }
       });
     }
+    // Если есть сдача за вычетом комиссии больше 1000, то прибавляем вес сдачи
+    if (change - totalFee >= 1000 && paymentAddressType) {
+      totalVBytes += bytesPerType[paymentAddressType].output;
+    } else if (change - totalFee > 0 && change - totalFee < 1000 && paymentAddressType) {
+      
+    } else if (change - totalFee < 0 && paymentAddressType) {
+      totalVBytes += bytesPerType[paymentAddressType].input;
+    }
+
 
     // Добавляем размер свидетеля (witness)
     if (witnessSize > 0) {
@@ -65,18 +96,36 @@ export const FeesProvider = ({ children }) => {
     totalVBytes = Math.ceil(totalVBytes);
 
     // Вычисляем комиссию
-    const newEstimatedFee = totalVBytes * feeRate;
-    setEstimatedFee(newEstimatedFee);
+    setTotalFee(getFeeValue(totalVBytes));
 
     return totalVBytes;
-  }
+  }, [
+    paymentAddressType, 
+    input, 
+    outputs, 
+    change,
+    customFee,
+    feeState,
+    fees,
+    setTotalFee,
+    totalFee,
+  ]);
 
   useEffect(() => {
     calcEstimatedFee();
-  }, [outputs, input, feeRate]);
+  }, [calcEstimatedFee]);
 
   return (
-    <FeesContext.Provider value={{ estimatedFee, calcEstimatedFee, feeState, setFeeState, feeRate, setFeeRate }}>
+    <FeesContext.Provider value={{ 
+      calcEstimatedFee, 
+      totalFee, 
+      setTotalFee, 
+      feeState, 
+      setFeeState, 
+      feeRate, 
+      setFeeRate,
+      customFee, setCustomFee
+    }}>
       {children}
     </FeesContext.Provider>
   );

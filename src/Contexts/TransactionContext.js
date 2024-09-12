@@ -3,7 +3,6 @@ import React, { createContext, useState, useContext, useCallback, useEffect, use
 const TransactionContext = createContext();
 
 export const TransactionProvider = ({ children }) => {
-  const [fee, setFee] = useState(0);
   const [input, setInput] = useState(() => {
     const savedInput = localStorage.getItem('transactionInput');
     return savedInput ? JSON.parse(savedInput) : [];
@@ -19,8 +18,6 @@ export const TransactionProvider = ({ children }) => {
       satsFormat: 'sats',
     }];
   });
-  console.log('outputs:', JSON.stringify(outputs, null, 2));
-  console.log('input:', JSON.stringify(input, null, 2));
   
   const [temporaryOutput, setTemporaryOutput] = useState({
     address: '',
@@ -218,8 +215,6 @@ export const TransactionProvider = ({ children }) => {
       removeAllUtxo,
       edit,
       inputError,
-      fee,
-      setFee,
       setInputError,
       setEdit,
       removeAll,

@@ -4,9 +4,11 @@ import useCreatePSBT from '../../Hooks/useCreatePSBT';
 import Button from '../Button'
 import useSignPSBT from '../../Hooks/useSignPSBT';
 import { useWallet } from '../../Contexts/WalletContext';
+import { useFees } from '../../Contexts/feesContext';
 
 const CreateTransaction = () => {
-  const { input, outputs, edit, change, fee } = useTransaction();
+  const { input, outputs, edit, change } = useTransaction();
+  const { totalFee } = useFees();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
   const { isConnected, paymentAddress, paymentAddressType, publicKey } = useWallet();
@@ -27,7 +29,6 @@ const CreateTransaction = () => {
   }
 
   const handleCreateTransaction = () => {
-    console.log('input', input);
     const psbtInputs = input.map(input => ({
       tx_hash: input.txid,
       addressType: input.addressType,
@@ -41,8 +42,10 @@ const CreateTransaction = () => {
       value: output.amount
     }));
 
-/* 
-    if (change < fee) {
+
+
+
+/*     if (change < totalFee) {
       psbtInputs.push({
         tx_hash: 'dummy_txid_for_change',
         addressType: paymentAddressType,
@@ -53,10 +56,10 @@ const CreateTransaction = () => {
     } */
 
     // Добавляем дополнительный выход, если (change - fee) > 600
-    if (change - fee > 600) {
+    if (change - totalFee > 1000) {
       psbtOutputs.push({
         address: paymentAddress,
-        value: change - fee
+        value: change - totalFee
       });
     }
 

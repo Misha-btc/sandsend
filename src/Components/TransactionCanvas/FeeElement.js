@@ -1,35 +1,11 @@
 import React, { useState } from 'react';
 import Button from '../Button';
 import { useFees } from '../../Contexts/feesContext';
-import useMempoolInfo from '../../Hooks/useMempoolInfo';
-import Toggle from '../Toggle';
-import { useTransaction } from '../../Contexts/TransactionContext';
+
 
 const FeeElement = () => {
-  const { fees } = useMempoolInfo();
-  const { estimatedFee, feeState, setFeeState } = useFees();
-  const [customFee, setCustomFee] = useState('');
+  const { feeState, setFeeState, customFee, setCustomFee, totalFee } = useFees();
   const [confirmFee, setConfirmFee] = useState(false);
-  const [feeOut, setFeeOut] = useState(false);
-  const { setFee } = useTransaction();
-
-  const getFeeValue = (type) => {
-    if (type !== 'custom') {
-      const index = type === 'low' ? 1 : type === 'medium' ? 2 : type === 'high' ? 3 : 0;
-      if (fees && fees[index]) {
-        const totalFee = Math.ceil(fees[index] * estimatedFee);
-        setFee(totalFee.toFixed(2));
-        return totalFee.toFixed(2);
-      } else {
-        setFee(0);
-        return 0;
-      }
-    } else {
-      const totalFee = customFee * estimatedFee;
-      setFee(totalFee.toFixed(0));
-      return totalFee.toFixed(0);
-    }
-  }
 
   const handleFeeChange = (type) => {
     if (type !== 'custom') {
@@ -61,7 +37,7 @@ return (
     <div className="fixed bottom-10 bg-zinc-300 items-center text-gray-600 left-1/2 w-1/3 transform -translate-x-1/2 rounded-lg shadow-md mb-4 border-4 border-white">
         <div className='flex flex-row items-center justify-between pb-2'>
           <div>
-            <p className='text-sm pl-2 text-gray-500'>Estimated fee: {getFeeValue(feeState)} ~ {(getFeeValue(feeState) * 0.0006).toFixed(2) }USD</p>
+            <p className='text-sm pl-2 text-gray-500'>Estimated fee: {totalFee} ~ {(totalFee * 0.0006).toFixed(2) }USD</p>
           </div>
         </div>
         {feeState === 'custom' && confirmFee === false && (

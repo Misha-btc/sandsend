@@ -76,7 +76,6 @@ export const WalletProvider = ({ children }) => {
         localStorage.setItem('isConnected', JSON.stringify(true));
         setPaymentAddress(result.paymentAddress);
         setOrdinalsAddress(result.ordinalsAddress);
-        console.log('result', result);
         setPaymentAddressType(result.paymentAddressType);
         setOrdinalsAddressType(result.ordinalsAddressType);
         setPublicKey(result.paymentPublicKey);

@@ -21,7 +21,6 @@ function useMempoolInfo() {
       }, {
         headers: { 'Content-Type': 'application/json' }
       });
-      console.log(response.data.result);
 
       setFees(response.data.result);
       setError(null);
