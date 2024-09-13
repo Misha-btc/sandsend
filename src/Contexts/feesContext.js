@@ -10,13 +10,14 @@ const FeesContext = createContext();
 
 export const FeesProvider = ({ children }) => {
   const [feeRate, setFeeRate] = useState(1); // Устанавливаем начальное значение 1 sat/vByte
-  const { outputs, input, change, inputRef, balance } = useTransaction();
-  const { paymentAddressType } = useWallet();
+  const { outputs, input, change, inputRef } = useTransaction();
+  const { paymentAddressType, balance } = useWallet();
   const [feeState, setFeeState] = useState('medium');
   const [totalFee, setTotalFee] = useState(0);
   const { fees } = useMempoolInfo();
   const [customFee, setCustomFee] = useState('');
   const selectOptimalFee = useFeeSelect();
+  const [confirmFee, setConfirmFee] = useState(false);
 
   const calcEstimatedFee = useCallback(() => {
     const getFeeValue = (totalVBytes) => {
@@ -28,7 +29,11 @@ export const FeesProvider = ({ children }) => {
           return 0;
         }
       } else {
-        return customFee * totalVBytes;
+        if (confirmFee) {
+          return customFee * totalVBytes;
+        } else {
+          return 0;
+        }
       }
     }
     let feeSum = totalFee;
@@ -78,37 +83,42 @@ export const FeesProvider = ({ children }) => {
         }
       });
     }
-    console.log(`input: ${input.length} feeSum: ${feeSum} totalfee ${totalFee}`);
-    // Если есть сдача за вычетом комиссии больше 1000, то прибавляем вес сдачи
-    if (change - feeSum >= 1000 && paymentAddressType) {
-      totalVBytes += bytesPerType[paymentAddressType].output;
-    } else if (change - feeSum >= 0 && change - feeSum < 1000 && paymentAddressType) {
-      
-    } else if (change - feeSum < 0 && paymentAddressType && !(balance - inputTotalAmount > inputTotalAmount + feeSum)) {
-
-      const selectedUtxos = selectOptimalFee(feeSum, change, input);
-      const selectedAmount = selectedUtxos && selectedUtxos.length > 0
-        ? selectedUtxos.reduce((sum, utxo) => sum + utxo.value, 0)
-        : 0;
-      const inputCaunt = selectedUtxos ? selectedUtxos.length : 0;
-      console.log(`inputCaunt: ${inputCaunt}`);
-      totalVBytes += bytesPerType[paymentAddressType].input * inputCaunt;
-    } else {
-      return { totalVBytes: 0, fee: 0 };
-    }
-
     // Добавляем размер свидетеля (witness)
     if (witnessSize > 0) {
       totalVBytes += 0.25 + 0.25 + witnessSize / 4;
     }
 
-    // Округляем до целого числа vbytes
     totalVBytes = Math.ceil(totalVBytes);
 
     // Вычисляем комиссию
+ 
+
+    const balanceChange = balance - inputTotalAmount - feeSum;
+
+
+    if (change - feeSum >= 1000 && paymentAddressType) {
+      totalVBytes += bytesPerType[paymentAddressType].output;
+    } else if (change - feeSum >= 0 && change - feeSum < 1000 && paymentAddressType) {
+      
+    } else if (change - feeSum < 0 && paymentAddressType) {
+      if (balance > inputTotalAmount + feeSum) {
+        const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, paymentAddressType, getFeeValue, balanceChange);
+        const selectedAmount = selectedUtxos && selectedUtxos.length > 0
+          ? selectedUtxos.reduce((sum, utxo) => sum + utxo.value, 0)
+          : 0;
+        const changeAfterSelect = selectedAmount - feeSum;
+        const inputCaunt = selectedUtxos ? selectedUtxos.length : 0;
+        totalVBytes += changeAfterSelect ? bytesPerType[paymentAddressType].output : 0;
+        totalVBytes += bytesPerType[paymentAddressType].input * inputCaunt;
+        console.log(`totalVBytes: ${totalVBytes}`);
+      } else {
+        console.log(`Don't have enough funds to send transaction`)
+      }
+    }
+
     const calculatedTotalVBytes = Math.ceil(totalVBytes);
     const calculatedFee = getFeeValue(calculatedTotalVBytes);
-    
+
     return { totalVBytes: calculatedTotalVBytes, fee: calculatedFee };
   }, [
     paymentAddressType, 
@@ -116,6 +126,7 @@ export const FeesProvider = ({ children }) => {
     selectOptimalFee, 
     outputs, 
     change,
+    confirmFee,
     balance,
     totalFee,
     customFee,
@@ -134,6 +145,8 @@ export const FeesProvider = ({ children }) => {
       totalFee, 
       setTotalFee, 
       feeState, 
+      confirmFee,
+      setConfirmFee,
       setFeeState, 
       feeRate, 
       setFeeRate,

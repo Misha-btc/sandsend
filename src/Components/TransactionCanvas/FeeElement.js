@@ -4,15 +4,16 @@ import { useFees } from '../../Contexts/feesContext';
 
 
 const FeeElement = () => {
-  const { feeState, setFeeState, customFee, setCustomFee, totalFee } = useFees();
-  const [confirmFee, setConfirmFee] = useState(false);
+  const { feeState, setFeeState, customFee, setCustomFee, totalFee, setConfirmFee, confirmFee } = useFees();
 
   const handleFeeChange = (type) => {
+    setConfirmFee(false);
     if (type !== 'custom') {
       setFeeState(type);
+
+      setCustomFee('');
     } else {
-      setFeeState('custom');
-      setConfirmFee(false);
+      setFeeState(type);
       return
     }
   }
