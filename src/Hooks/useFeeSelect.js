@@ -26,19 +26,38 @@ const useFeeSelect = () => {
       !selectedUtxos.some(selectedUtxo => selectedUtxo.txid === utxo.txid && selectedUtxo.vout === utxo.vout)
     );
     
-    let requiredAmount = change - totalFee;
+    let requiredAmount = change - totalFee; //-1440000
+    let balanceRemain = balanceChange; //balanceChange = balance - inputTotalAmount - totalFee
+
+    const MAX_ITERATIONS = availableUtxos.length; // Можно настроить это значение
+    let iterations = 0;
 
     for (const utxo of availableUtxos) {
-      if (requiredAmount >= 0 || balanceChange < feeSum) break;
+      if (utxo.value <= getFeeValue(bytesPerType[paymentAddressType].input)) {
+        break; // Пропускаем UTXO, если его значение меньше или равно комиссии за его использование
+      }
+
+      if (requiredAmount >= 0 || balanceRemain <= totalFee + feeSum) break; //-1440000 >= 0 || 3714678 <= 1440000 + 0
+      if (iterations++ > MAX_ITERATIONS) {
+        console.log('Достигнуто максимальное количество итераций');
+        return null;
+      }
       selectedUtxos.push(utxo);
       feeUtxos.push(utxo);
       feeBytes += bytesPerType[paymentAddressType].input;
-      feeSum += getFeeValue(feeBytes);
-      requiredAmount -= getFeeValue(feeBytes);
-      requiredAmount += utxo.value;
-      if (requiredAmount >= 0) {
+      feeSum += getFeeValue(feeBytes); //910000 комиссия внутри этого ХУКА
+      requiredAmount -= feeSum; //1440000 - 910000 = 530000
+      requiredAmount += utxo.value; //530000 + 
+      balanceRemain -= utxo.value - feeSum; //3714678 - 3354546 - 910000 = 490132
+      console.log(`Iteration 1: ${iterations}, requiredAmount: ${requiredAmount}, balanceRemain: ${balanceRemain}, feeSum: ${feeSum}`);
+      if (feeSum + totalFee > balanceRemain) {//910000 + 1440000 > 490132
+        
+        return null;
+      } else if (requiredAmount >= 0) {
+        console.log(`feeUtxos: ${feeUtxos}`);
         return feeUtxos;
       }
+      console.log(`Iteration 2: ${iterations}, requiredAmount: ${requiredAmount}, balanceRemain: ${balanceRemain}, feeSum: ${feeSum}`);
     }
     return null;
   }, []);

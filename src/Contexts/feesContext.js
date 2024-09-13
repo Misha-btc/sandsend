@@ -30,13 +30,12 @@ export const FeesProvider = ({ children }) => {
         }
       } else {
         if (confirmFee) {
-          return customFee * totalVBytes;
+          return Math.ceil(customFee * totalVBytes);
         } else {
           return 0;
         }
       }
     }
-    let feeSum = totalFee;
 
     const bytesPerType = {
       p2pkh: { input: 148, output: 34 },
@@ -46,15 +45,9 @@ export const FeesProvider = ({ children }) => {
       p2tr: { input: 57.25, output: 43 },
     };
 
-    let totalVBytes = 0;
+    let totalVBytes = 10; // Базовый размер транзакции
     let witnessSize = 0;
     let inputTotalAmount = 0;
-
-    // Добавляем размер заголовка транзакции
-    totalVBytes += 4 + // nVersion
-                   1 + // число входов (предполагаем < 253)
-                   1 + // число выходов (предполагаем < 253)
-                   4;  // nLockTime
 
     // Обрабатываем входы
     if (Array.isArray(input)) {
@@ -83,6 +76,7 @@ export const FeesProvider = ({ children }) => {
         }
       });
     }
+
     // Добавляем размер свидетеля (witness)
     if (witnessSize > 0) {
       totalVBytes += 0.25 + 0.25 + witnessSize / 4;
@@ -90,36 +84,32 @@ export const FeesProvider = ({ children }) => {
 
     totalVBytes = Math.ceil(totalVBytes);
 
-    // Вычисляем комиссию
- 
-
+    let feeSum = getFeeValue(totalVBytes);
     const balanceChange = balance - inputTotalAmount - feeSum;
-
 
     if (change - feeSum >= 1000 && paymentAddressType) {
       totalVBytes += bytesPerType[paymentAddressType].output;
-    } else if (change - feeSum >= 0 && change - feeSum < 1000 && paymentAddressType) {
-      
-    } else if (change - feeSum < 0 && paymentAddressType) {
-      if (balance > inputTotalAmount + feeSum) {
-        const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, paymentAddressType, getFeeValue, balanceChange);
-        const selectedAmount = selectedUtxos && selectedUtxos.length > 0
-          ? selectedUtxos.reduce((sum, utxo) => sum + utxo.value, 0)
-          : 0;
-        const changeAfterSelect = selectedAmount - feeSum;
-        const inputCaunt = selectedUtxos ? selectedUtxos.length : 0;
-        totalVBytes += changeAfterSelect ? bytesPerType[paymentAddressType].output : 0;
-        totalVBytes += bytesPerType[paymentAddressType].input * inputCaunt;
-        console.log(`totalVBytes: ${totalVBytes}`);
-      } else {
-        console.log(`Don't have enough funds to send transaction`)
+      feeSum = getFeeValue(totalVBytes);
+    } else if (change - feeSum < 0 && paymentAddressType && balanceChange > 0) {
+      const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, paymentAddressType, getFeeValue, balanceChange);
+      console.log(`selectedUtxos: ${JSON.stringify(selectedUtxos)}`);
+      if (!selectedUtxos) {
+        console.log('No selected UTXOs or insufficient funds');
+        return { totalVBytes: 0, fee: 0 };
       }
+      const selectedAmount = selectedUtxos.reduce((sum, utxo) => sum + utxo.value, 0);
+      inputTotalAmount += selectedAmount;
+      const changeAfterSelect = selectedAmount - feeSum;
+      console.log(`changeAfterSelect: ${changeAfterSelect} selectedAmount: ${selectedAmount} --- feeSum: ${feeSum}`);
+      const inputCount = selectedUtxos.length;
+      totalVBytes += changeAfterSelect > 0 ? bytesPerType[paymentAddressType].output : 0;
+      totalVBytes += bytesPerType[paymentAddressType].input * inputCount;
+      console.log(`inputCount: ${inputCount}`);
+      console.log(`totalVBytes: ${totalVBytes}`);
+      feeSum = getFeeValue(totalVBytes);
     }
 
-    const calculatedTotalVBytes = Math.ceil(totalVBytes);
-    const calculatedFee = getFeeValue(calculatedTotalVBytes);
-
-    return { totalVBytes: calculatedTotalVBytes, fee: calculatedFee };
+    return { totalVBytes, fee: feeSum };
   }, [
     paymentAddressType, 
     input,
@@ -128,7 +118,6 @@ export const FeesProvider = ({ children }) => {
     change,
     confirmFee,
     balance,
-    totalFee,
     customFee,
     feeState,
     fees
