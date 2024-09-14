@@ -8,7 +8,7 @@ import { useFees } from '../../Contexts/feesContext';
 
 const CreateTransaction = () => {
   const { input, outputs, edit, change } = useTransaction();
-  const { totalFee, feeInput, totalChange, setTotalChange, setFeeInput} = useFees();
+  const { totalFee, feeInput, totalChange, setTotalChange, setFeeInput, feeState, customFee } = useFees();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
   const { isConnected, paymentAddress, paymentAddressType, publicKey } = useWallet();
@@ -22,7 +22,7 @@ const CreateTransaction = () => {
     setPsbt(null);
     setSignedPsbt(null);
     setTxid(null);
-  }, [input, outputs]);
+  }, [input, outputs, feeState, customFee, edit]);
 
   if (!isConnected) {
     return null;

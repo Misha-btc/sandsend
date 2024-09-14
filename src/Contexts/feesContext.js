@@ -37,6 +37,8 @@ export const FeesProvider = ({ children }) => {
         }
       }
     }
+    setTotalChange(null);
+    setFeeInput([]);
 
     if (outputs.length === 0 || input.length === 0 || outputs[0].amount === 0) {
       return { totalVBytes: 0, fee: 0 };

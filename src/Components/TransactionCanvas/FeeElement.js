@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import Button from '../Button';
 import { useFees } from '../../Contexts/feesContext';
 
-
 const FeeElement = () => {
   const { feeState, setFeeState, customFee, setCustomFee, totalFee, setConfirmFee, confirmFee } = useFees();
 
