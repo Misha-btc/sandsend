@@ -39,7 +39,6 @@ const useFeeSelect = () => {
 
       if (requiredAmount >= 0 || balanceRemain <= totalFee + feeSum) break; //-1440000 >= 0 || 3714678 <= 1440000 + 0
       if (iterations++ > MAX_ITERATIONS) {
-        console.log('Достигнуто максимальное количество итераций');
         return null;
       }
       selectedUtxos.push(utxo);
@@ -49,15 +48,12 @@ const useFeeSelect = () => {
       requiredAmount -= feeSum; //1440000 - 910000 = 530000
       requiredAmount += utxo.value; //530000 + 
       balanceRemain -= utxo.value - feeSum; //3714678 - 3354546 - 910000 = 490132
-      console.log(`Iteration 1: ${iterations}, requiredAmount: ${requiredAmount}, balanceRemain: ${balanceRemain}, feeSum: ${feeSum}`);
       if (feeSum + totalFee > balanceRemain) {//910000 + 1440000 > 490132
         
         return null;
       } else if (requiredAmount >= 0) {
-        console.log(`feeUtxos: ${feeUtxos}`);
         return feeUtxos;
       }
-      console.log(`Iteration 2: ${iterations}, requiredAmount: ${requiredAmount}, balanceRemain: ${balanceRemain}, feeSum: ${feeSum}`);
     }
     return null;
   }, []);

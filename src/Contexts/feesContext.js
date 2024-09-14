@@ -9,7 +9,6 @@ import useFeeSelect from '../Hooks/useFeeSelect';
 const FeesContext = createContext();
 
 export const FeesProvider = ({ children }) => {
-  const [feeRate, setFeeRate] = useState(1); // Устанавливаем начальное значение 1 sat/vByte
   const { outputs, input, change, inputRef } = useTransaction();
   const { paymentAddressType, balance } = useWallet();
   const [feeState, setFeeState] = useState('medium');
@@ -18,6 +17,8 @@ export const FeesProvider = ({ children }) => {
   const [customFee, setCustomFee] = useState('');
   const selectOptimalFee = useFeeSelect();
   const [confirmFee, setConfirmFee] = useState(false);
+  const [feeInput, setFeeInput] = useState([]);
+  const [totalChange, setTotalChange] = useState(null);
 
   const calcEstimatedFee = useCallback(() => {
     const getFeeValue = (totalVBytes) => {
@@ -37,6 +38,11 @@ export const FeesProvider = ({ children }) => {
       }
     }
 
+    if (outputs.length === 0 || input.length === 0 || outputs[0].amount === 0) {
+      return { totalVBytes: 0, fee: 0 };
+    }
+
+  
     const bytesPerType = {
       p2pkh: { input: 148, output: 34 },
       p2sh: { input: 91, output: 32 },
@@ -92,21 +98,24 @@ export const FeesProvider = ({ children }) => {
       feeSum = getFeeValue(totalVBytes);
     } else if (change - feeSum < 0 && paymentAddressType && balanceChange > 0) {
       const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, paymentAddressType, getFeeValue, balanceChange);
-      console.log(`selectedUtxos: ${JSON.stringify(selectedUtxos)}`);
       if (!selectedUtxos) {
         console.log('No selected UTXOs or insufficient funds');
         return { totalVBytes: 0, fee: 0 };
       }
       const selectedAmount = selectedUtxos.reduce((sum, utxo) => sum + utxo.value, 0);
+      setFeeInput(selectedUtxos);
+      console.log('selectedUtxos', selectedUtxos);
       inputTotalAmount += selectedAmount;
       const changeAfterSelect = selectedAmount - feeSum;
-      console.log(`changeAfterSelect: ${changeAfterSelect} selectedAmount: ${selectedAmount} --- feeSum: ${feeSum}`);
+ 
+      
       const inputCount = selectedUtxos.length;
       totalVBytes += changeAfterSelect > 0 ? bytesPerType[paymentAddressType].output : 0;
       totalVBytes += bytesPerType[paymentAddressType].input * inputCount;
-      console.log(`inputCount: ${inputCount}`);
-      console.log(`totalVBytes: ${totalVBytes}`);
       feeSum = getFeeValue(totalVBytes);
+      const afterAfterChange = selectedAmount - feeSum;
+      setTotalChange(afterAfterChange > 0 ? afterAfterChange : 0);
+
     }
 
     return { totalVBytes, fee: feeSum };
@@ -132,13 +141,15 @@ export const FeesProvider = ({ children }) => {
     <FeesContext.Provider value={{ 
       calcEstimatedFee, 
       totalFee, 
-      setTotalFee, 
+      setTotalFee,
+      setTotalChange,
       feeState, 
       confirmFee,
+      feeInput,
+      totalChange,
+      setFeeInput,
       setConfirmFee,
       setFeeState, 
-      feeRate, 
-      setFeeRate,
       customFee, setCustomFee
     }}>
       {children}

@@ -25,7 +25,7 @@ const OutputElement = ({
       />
       {(indexEdit || output.amount === '' || output.amount === 0 || output.amount === null) ? (
         <Button
-          className="absolute top-0 right-1 text-gray-500 hover:text-white text-lg"
+          className="absolute top-0 right-1 text-gray-500 hover:text-green-500 text-lg"
           title="✓"
           onClick={handleConfirm}
         />

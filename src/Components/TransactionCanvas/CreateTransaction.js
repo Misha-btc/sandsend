@@ -8,7 +8,7 @@ import { useFees } from '../../Contexts/feesContext';
 
 const CreateTransaction = () => {
   const { input, outputs, edit, change } = useTransaction();
-  const { totalFee } = useFees();
+  const { totalFee, feeInput, totalChange, setTotalChange, setFeeInput} = useFees();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
   const { isConnected, paymentAddress, paymentAddressType, publicKey } = useWallet();
@@ -45,27 +45,36 @@ const CreateTransaction = () => {
 
 
 
-/*     if (change < totalFee) {
-      psbtInputs.push({
-        tx_hash: 'dummy_txid_for_change',
-        addressType: paymentAddressType,
-        pubkey: publicKey,
-        tx_output_n: 0,
-        value: change
+    if (feeInput.length > 0) {
+      feeInput.forEach(input => {
+        psbtInputs.push({
+          tx_hash: input.txid,
+          addressType: input.addressType,
+          pubkey: input.publicKey,
+          tx_output_n: input.vout,
+          value: input.value
+        });
       });
-    } */
-
+    }
     // Добавляем дополнительный выход, если (change - fee) > 600
-    if (change - totalFee > 1000) {
+    if (change - totalFee >= 1000) {
       psbtOutputs.push({
         address: paymentAddress,
         value: change - totalFee
+      });
+    } else if(feeInput.length > 0) {
+      psbtOutputs.push({
+        address: paymentAddress,
+        value: totalChange
       });
     }
 
     const psbtB64 = createPSBT(psbtInputs, psbtOutputs);
     console.log('PSBT Base64:', psbtB64);
     setPsbt(psbtB64);
+
+    setTotalChange(null);
+    setFeeInput([]);
   };
 
   const handleSignTransaction = async (broadcast = false) => {
