@@ -19,7 +19,7 @@ export const FeesProvider = ({ children }) => {
   const [confirmFee, setConfirmFee] = useState(false);
   const [feeInput, setFeeInput] = useState([]);
   const [totalChange, setTotalChange] = useState(null);
-
+  const [balanceAfterOutput, setBalanceAfterOutput] = useState(null);
   const calcEstimatedFee = useCallback(() => {
     const getFeeValue = (totalVBytes) => {
       if (feeState !== 'custom') {
@@ -56,6 +56,7 @@ export const FeesProvider = ({ children }) => {
     let totalVBytes = 10; // Базовый размер транзакции
     let witnessSize = 0;
     let inputTotalAmount = 0;
+    let outputTotalAmount = 0;
 
     // Обрабатываем входы
     if (Array.isArray(input)) {
@@ -80,6 +81,8 @@ export const FeesProvider = ({ children }) => {
           const outputType = output.addressType.toLowerCase();
           if (bytesPerType[outputType]) {
             totalVBytes += bytesPerType[outputType].output;
+            outputTotalAmount += output.amount;
+            console.log('output', output);
           }
         }
       });
@@ -94,13 +97,18 @@ export const FeesProvider = ({ children }) => {
 
     let feeSum = getFeeValue(totalVBytes);
     const balanceChange = balance - inputTotalAmount - feeSum;
+    const balanceAfterOutput = balance - outputTotalAmount - feeSum;
+    if (balanceAfterOutput < 0) {
+      return { totalVBytes: 0, fee: 0 };
+    }
+    setBalanceAfterOutput(balanceAfterOutput);
 
     if (change - feeSum >= 1000 && paymentAddressType) {
       totalVBytes += bytesPerType[paymentAddressType].output;
       feeSum = getFeeValue(totalVBytes);
       setTotalChange(change - feeSum);
     } else if (change - feeSum < 0 && paymentAddressType && balanceChange > 0) {
-      const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, paymentAddressType, getFeeValue, balanceChange);
+      const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, balanceAfterOutput, paymentAddressType, getFeeValue, balanceChange);
       if (!selectedUtxos) {
         console.log('No selected UTXOs or insufficient funds');
         return { totalVBytes: 0, fee: 0 };
@@ -114,8 +122,19 @@ export const FeesProvider = ({ children }) => {
       const inputCount = selectedUtxos.length;
       totalVBytes += changeAfterSelect > 0 ? bytesPerType[paymentAddressType].output : 0;
       totalVBytes += bytesPerType[paymentAddressType].input * inputCount;
+
       feeSum = getFeeValue(totalVBytes);
-      const afterAfterChange = selectedAmount - feeSum;
+      console.log('feeSum', feeSum);
+      
+      const afterAfterChange = inputTotalAmount - outputTotalAmount - feeSum;
+      console.log(`afterAfterChange: ${afterAfterChange}`);
+      setBalanceAfterOutput(afterAfterChange);
+      console.log('afterAfterChange', afterAfterChange, `inputTotalAmount: ${inputTotalAmount}, outputTotalAmount: ${outputTotalAmount}, feeSum: ${feeSum}`);
+      if (afterAfterChange < 0) {
+        setTotalChange(0);
+        setFeeInput([]);
+        return { totalVBytes: 0, fee: 0 };
+      }
       setTotalChange(afterAfterChange > 0 ? afterAfterChange : 0);
 
     } else {
@@ -152,6 +171,7 @@ export const FeesProvider = ({ children }) => {
       confirmFee,
       feeInput,
       totalChange,
+      balanceAfterOutput,
       setFeeInput,
       setConfirmFee,
       setFeeState, 

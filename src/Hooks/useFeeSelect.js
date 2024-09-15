@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 
 const useFeeSelect = () => {
-  const selectOptimalFee = useCallback((totalFee, change, input, bytesPerType, paymentAddressType, getFeeValue, balanceChange) => {
+  const selectOptimalFee = useCallback((totalFee, change, input, bytesPerType, balanceAfterOutput, paymentAddressType, getFeeValue, balanceChange) => {
     const storedDetails = localStorage.getItem('transactionDetails');
     if (!storedDetails) return;
 
@@ -28,11 +28,9 @@ const useFeeSelect = () => {
       })))
       .sort((a, b) => b.value - a.value);
 
-    console.log('utxosArray', utxosArray);
     const availableUtxos = utxosArray.filter(utxo => 
       !selectedUtxos.some(selectedUtxo => selectedUtxo.txid === utxo.txid && selectedUtxo.vout === utxo.vout)
     );
-    console.log('availableUtxos', availableUtxos);
     let requiredAmount = change - totalFee; //-1440000
     let balanceRemain = balanceChange; //balanceChange = balance - inputTotalAmount - totalFee
 
