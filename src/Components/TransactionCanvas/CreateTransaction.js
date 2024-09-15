@@ -8,7 +8,7 @@ import { useFees } from '../../Contexts/feesContext';
 
 const CreateTransaction = () => {
   const { input, outputs, edit, change } = useTransaction();
-  const { totalFee, feeInput, totalChange, setTotalChange, setFeeInput, feeState, customFee, balanceAfterOutput } = useFees();
+  const { totalFee, feeInput, totalChange, setTotalChange, setFeeInput, feeState, customFee, balanceAfterOutput, changeOutputPrice } = useFees();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
   const { isConnected, paymentAddress } = useWallet();
@@ -56,8 +56,14 @@ const CreateTransaction = () => {
         });
       });
     }
+    console.log('CREATE TRANSACTION changeOutputPrice', changeOutputPrice,`change: ${change}`, `totalFee: ${totalFee}`);
     // Добавляем дополнительный выход, если (change - fee) > 600
     if (change - totalFee >= 1000) {
+      psbtOutputs.push({
+        address: paymentAddress,
+        value: change - totalFee
+      });
+    } else if (changeOutputPrice <= (change - totalFee - changeOutputPrice) && (change - totalFee - changeOutputPrice) >= 546){
       psbtOutputs.push({
         address: paymentAddress,
         value: change - totalFee

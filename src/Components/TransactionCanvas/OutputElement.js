@@ -40,7 +40,7 @@ const OutputElement = ({
         <div className="flex flex-col h-full justify-between">
           <div>
             <label htmlFor="address" className="block text-xs font-medium text-gray-400 mb-1">
-              адрес
+              address
             </label>
             <input
               id="address"
@@ -55,7 +55,7 @@ const OutputElement = ({
           </div>
           <div>
             <label htmlFor="amount" className="block text-xs font-medium text-gray-400 mb-1">
-              сумма
+              amount
             </label>
             <div className="flex items-center">
               <input
@@ -84,10 +84,10 @@ const OutputElement = ({
           />
         </div>
       ) : (
-        <div className="flex flex-col h-full justify-center">
-          <p className="text-green-500 text-sm mb-2">адрес: {output.address.slice(0, 3)}...{output.address.slice(-5)}</p>
+        <div className="flex flex-col h-full justify-center text-center">
+          <p className="text-green-500 text-sm mb-2">{output.address.slice(0, 5)}...{output.address.slice(-7)}</p>
           <p className="text-white text-sm">
-            сумма: {output.amount} {output.satsFormat}
+            {output.amount} {output.satsFormat}
           </p>
         </div>
       )}

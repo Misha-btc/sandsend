@@ -20,6 +20,8 @@ export const FeesProvider = ({ children }) => {
   const [feeInput, setFeeInput] = useState([]);
   const [totalChange, setTotalChange] = useState(null);
   const [balanceAfterOutput, setBalanceAfterOutput] = useState(null);
+  const [changeOutputPrice, setChangeOutputPrice] = useState(0);
+
   const calcEstimatedFee = useCallback(() => {
     const getFeeValue = (totalVBytes) => {
       if (feeState !== 'custom') {
@@ -57,6 +59,7 @@ export const FeesProvider = ({ children }) => {
     let witnessSize = 0;
     let inputTotalAmount = 0;
     let outputTotalAmount = 0;
+    setChangeOutputPrice(paymentAddressType && bytesPerType[paymentAddressType] ? getFeeValue(bytesPerType[paymentAddressType].output) : 0);
 
     // Обрабатываем входы
     if (Array.isArray(input)) {
@@ -102,11 +105,17 @@ export const FeesProvider = ({ children }) => {
       return { totalVBytes: 0, fee: 0 };
     }
     setBalanceAfterOutput(balanceAfterOutput);
-
+    console.log('CONTEXT BEFORE IF changeOutputPrice', changeOutputPrice, `feeSum: ${feeSum}`, `change: ${change}`);
     if (change - feeSum >= 1000 && paymentAddressType) {
       totalVBytes += bytesPerType[paymentAddressType].output;
       feeSum = getFeeValue(totalVBytes);
       setTotalChange(change - feeSum);
+    } else if (changeOutputPrice <= (change - feeSum - changeOutputPrice) && (change - feeSum - changeOutputPrice) >= 546) {
+      console.log('CONTEXT changeOutputPrice', changeOutputPrice, `feeSum: ${feeSum}`, `change: ${change}`);
+      totalVBytes += bytesPerType[paymentAddressType].output;
+      feeSum = getFeeValue(totalVBytes);
+      setTotalChange(change - feeSum);
+
     } else if (change - feeSum < 0 && paymentAddressType && balanceChange > 0) {
       const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, balanceAfterOutput, paymentAddressType, getFeeValue, balanceChange);
       if (!selectedUtxos) {
@@ -146,6 +155,7 @@ export const FeesProvider = ({ children }) => {
   }, [
     paymentAddressType, 
     input,
+    changeOutputPrice,
     selectOptimalFee, 
     outputs, 
     change,
@@ -167,6 +177,7 @@ export const FeesProvider = ({ children }) => {
       totalFee, 
       setTotalFee,
       setTotalChange,
+      changeOutputPrice,
       feeState, 
       confirmFee,
       feeInput,
