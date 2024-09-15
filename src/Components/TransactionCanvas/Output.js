@@ -156,7 +156,7 @@ const Output = ({ output, index, removeOutput }) => {
   };
 
   return (
-    <div className="bg-zinc-800 p-4 rounded-lg shadow-md mb-4 relative border-2 border-orange-600 w-60">
+    <div className="bg-gradient-to-r from-zinc-800 to-zinc-950 p-4 rounded-lg shadow-md mb-4 relative border-2 border-orange-600 w-60">
         <OutputElement
           output={output}
           index={index}

@@ -70,10 +70,10 @@ function TransactionCanvas() {
               )}
               <AddRecipient />
               {totalChange > 0 && (
-                <ChangeOutput title="Change" changeOutput={totalChange}/>
+                <ChangeOutput title="change" changeOutput={totalChange}/>
               )}
               {totalFee > 0 && (
-                <ChangeOutput title="Fee" changeOutput={totalFee}/>
+                <ChangeOutput title="fee" changeOutput={totalFee}/>
               )}
             </div> 
             
