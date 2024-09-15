@@ -15,6 +15,7 @@ export const TransactionProvider = ({ children }) => {
     return savedInput ? JSON.parse(savedInput) : [];
   });
 
+
   const [outputs, setOutputs] = useState(() => {
     const savedOutputs = localStorage.getItem('transactionOutputs');
     return savedOutputs ? JSON.parse(savedOutputs) : [{

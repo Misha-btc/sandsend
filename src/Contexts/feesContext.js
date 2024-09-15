@@ -96,7 +96,6 @@ export const FeesProvider = ({ children }) => {
     const balanceChange = balance - inputTotalAmount - feeSum;
 
     if (change - feeSum >= 1000 && paymentAddressType) {
-      console.log('change - feeSum', change - feeSum);
       totalVBytes += bytesPerType[paymentAddressType].output;
       feeSum = getFeeValue(totalVBytes);
       setTotalChange(change - feeSum);
@@ -108,7 +107,6 @@ export const FeesProvider = ({ children }) => {
       }
       const selectedAmount = selectedUtxos.reduce((sum, utxo) => sum + utxo.value, 0);
       setFeeInput(selectedUtxos);
-      console.log('selectedUtxos', selectedUtxos);
       inputTotalAmount += selectedAmount;
       const changeAfterSelect = selectedAmount - feeSum;
  

@@ -8,7 +8,13 @@ const useFeeSelect = () => {
     let feeUtxos = [];
     let feeBytes = 0;
     let feeSum = 0;
+    console.log('input', input);
     let selectedUtxos = input.filter(utxo => utxo.type === 'selected' || utxo.type === 'auto');
+    
+    if (input.length <= 0) {
+      console.log('selectedUtxos', selectedUtxos);
+      return null;
+    }
 
     const transactionDetails = JSON.parse(storedDetails);
     const utxosArray = Object.entries(transactionDetails)
@@ -22,10 +28,11 @@ const useFeeSelect = () => {
       })))
       .sort((a, b) => b.value - a.value);
 
+    console.log('utxosArray', utxosArray);
     const availableUtxos = utxosArray.filter(utxo => 
       !selectedUtxos.some(selectedUtxo => selectedUtxo.txid === utxo.txid && selectedUtxo.vout === utxo.vout)
     );
-    
+    console.log('availableUtxos', availableUtxos);
     let requiredAmount = change - totalFee; //-1440000
     let balanceRemain = balanceChange; //balanceChange = balance - inputTotalAmount - totalFee
 

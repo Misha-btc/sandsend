@@ -43,7 +43,7 @@ function YourUtxo() {
         if (isSelected(key)) {
             removeInput(key);
         } else {
-            updateInput({ ...detail, txid, vout, key });
+            updateInput({ ...detail, txid, vout: Number(vout), key });
         }
     };
 
