@@ -9,7 +9,7 @@ import useFeeSelect from '../Hooks/useFeeSelect';
 const FeesContext = createContext();
 
 export const FeesProvider = ({ children }) => {
-  const { outputs, input, change, inputRef } = useTransaction();
+  const { outputs, input, change } = useTransaction();
   const { paymentAddressType, balance } = useWallet();
   const [feeState, setFeeState] = useState('medium');
   const [totalFee, setTotalFee] = useState(0);
@@ -96,8 +96,10 @@ export const FeesProvider = ({ children }) => {
     const balanceChange = balance - inputTotalAmount - feeSum;
 
     if (change - feeSum >= 1000 && paymentAddressType) {
+      console.log('change - feeSum', change - feeSum);
       totalVBytes += bytesPerType[paymentAddressType].output;
       feeSum = getFeeValue(totalVBytes);
+      setTotalChange(change - feeSum);
     } else if (change - feeSum < 0 && paymentAddressType && balanceChange > 0) {
       const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, paymentAddressType, getFeeValue, balanceChange);
       if (!selectedUtxos) {
@@ -118,6 +120,9 @@ export const FeesProvider = ({ children }) => {
       const afterAfterChange = selectedAmount - feeSum;
       setTotalChange(afterAfterChange > 0 ? afterAfterChange : 0);
 
+    } else {
+      setTotalChange(0);
+      setFeeInput([]);
     }
 
     return { totalVBytes, fee: feeSum };

@@ -25,6 +25,7 @@ function useMempoolInfo() {
       setFees(response.data.result);
       setError(null);
       localStorage.setItem('fees', JSON.stringify(response.data.result));
+      console.log('fees', response.data.result);
     } catch (err) {
       setError('Ошибка при получении данных о комиссиях');
       console.error('Ошибка при получении данных о комиссиях:', err);

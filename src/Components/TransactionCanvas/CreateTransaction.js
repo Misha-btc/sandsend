@@ -11,7 +11,7 @@ const CreateTransaction = () => {
   const { totalFee, feeInput, totalChange, setTotalChange, setFeeInput, feeState, customFee } = useFees();
   const { createPSBT } = useCreatePSBT();
   const signPSBT = useSignPSBT();
-  const { isConnected, paymentAddress, paymentAddressType, publicKey } = useWallet();
+  const { isConnected, paymentAddress } = useWallet();
   const [psbt, setPsbt] = useState(null);
   const [signedPsbt, setSignedPsbt] = useState(null);
   const [txid, setTxid] = useState(null);

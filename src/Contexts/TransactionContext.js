@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useCallback, useEffect, useRef } from 'react';
 import useCalculateChange from '../Hooks/useCalculateChange';
 import useCoinSelect from '../Hooks/useCoinSelect';
+
 const TransactionContext = createContext();
 
 export const TransactionProvider = ({ children }) => {
@@ -8,8 +9,6 @@ export const TransactionProvider = ({ children }) => {
   const [inputError, setInputError] = useState('');
   const [change, setChange] = useState(0);
   const [removeAllUtxo, setRemoveAllUtxo] = useState(false);
-
-  
 
   const [input, setInput] = useState(() => {
     const savedInput = localStorage.getItem('transactionInput');

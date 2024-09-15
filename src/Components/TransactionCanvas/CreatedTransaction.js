@@ -7,14 +7,10 @@ import Button from '../Button'; // Импортируем кнопку
 import { useWallet } from '../../Contexts/WalletContext';
 import CreateTransaction from './CreateTransaction';
 import AddRecipient from '../AddRecipient';
-import { useFees } from '../../Contexts/feesContext';
-import FeeInput from './FeeInput';
-import ChangeOutput from './ChangeOutput';
 
 function TransactionCanvas() {
   const { outputs, removeOutput, input, removeInput, change, removeAll } = useTransaction();
   const { isConnected } = useWallet();
-  const { feeState, customFee, totalFee, setFeeState, setCustomFee, setTotalFee, feeInput, totalChange } = useFees();
 
   if (!isConnected) {
     return null; // Ничего не рендерим, если кошелек не подключен
@@ -40,15 +36,6 @@ function TransactionCanvas() {
               ) : (
                 <p className="text-gray-400">Нет входов для отображения</p>
               )}
-              {feeInput && feeInput.length > 0 && (
-                feeInput.map((feeInput, index) => (
-                  <FeeInput
-                    key={`fee-${index}`}
-                    input={feeInput}
-                    index={index}
-                  />
-                ))
-              )}
             </div>
           </div>
           <h2 className="text-green-500 text-xl mb-4 absolute top-50 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">CHANGE {change}</h2>
@@ -69,12 +56,6 @@ function TransactionCanvas() {
                 <p className="text-gray-400">Нет выходов для отображения</p>
               )}
               <AddRecipient />
-              {totalChange > 0 && (
-                <ChangeOutput title="Change" changeOutput={totalChange}/>
-              )}
-              {totalFee > 0 && (
-                <ChangeOutput title="Fee" changeOutput={totalFee}/>
-              )}
             </div> 
             
           </div>
