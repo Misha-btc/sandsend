@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/sandsend/static/css/main.9839e546.css",
+    "main.js": "/sandsend/static/js/main.a4215a5f.js",
+    "static/js/453.ed3810f9.chunk.js": "/sandsend/static/js/453.ed3810f9.chunk.js",
+    "static/media/sandsend.jpeg": "/sandsend/static/media/sandsend.ce684ed5478decaec13f.jpeg",
+    "index.html": "/sandsend/index.html",
+    "main.9839e546.css.map": "/sandsend/static/css/main.9839e546.css.map",
+    "main.a4215a5f.js.map": "/sandsend/static/js/main.a4215a5f.js.map",
+    "453.ed3810f9.chunk.js.map": "/sandsend/static/js/453.ed3810f9.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.9839e546.css",
+    "static/js/main.a4215a5f.js"
+  ]
+}
