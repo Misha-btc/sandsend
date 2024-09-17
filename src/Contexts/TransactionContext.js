@@ -152,6 +152,7 @@ export const TransactionProvider = ({ children }) => {
       removeAllUtxo,
       edit,
       inputError,
+      setChange,
       setInputError,
       setEdit,
       removeAll,

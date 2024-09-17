@@ -8,11 +8,9 @@ const useFeeSelect = () => {
     let feeUtxos = [];
     let feeBytes = 0;
     let feeSum = 0;
-    console.log('input', input);
     let selectedUtxos = input.filter(utxo => utxo.type === 'selected' || utxo.type === 'auto');
     
     if (input.length <= 0) {
-      console.log('selectedUtxos', selectedUtxos);
       return null;
     }
 

@@ -15,7 +15,8 @@ const Output = ({ output, index, removeOutput }) => {
   const [address, setAddress] = useState(output.address);
   const { 
     updateSpecificOutput, 
-    change, 
+    change,
+    setChange,
     temporaryOutput, 
     setTemporaryOutput, 
     setEdit, 
@@ -61,16 +62,12 @@ const Output = ({ output, index, removeOutput }) => {
 
   const handleAmountUpdate = (e) => {
     const newAmount = e.target.value;
-    if (newAmount.startsWith('-')) {
-      return;
-    }
-    const [integerPart, decimalPart] = newAmount.split('.');
-    const formattedAmount = decimalPart ? `${integerPart}.${decimalPart.slice(0, 8)}` : newAmount;
     setErrors({ ...errors, amountError: '' });
     setInputError('');
-    setAmount(formattedAmount);
-    // Обновляем временный вывод при изменении сумм��
-    setTemporaryOutput({ amount: formattedAmount, index, coinFormat });
+    setAmount(newAmount);
+    console.log(`newAmount: ${newAmount}`);
+    // Обновляем временный вывод при изменении сумм
+    setTemporaryOutput({ amount: newAmount, index: index, coinFormat: coinFormat });
   };
 
   // Удаляем useEffect, так как теперь обновление происходит в обрботчиках
@@ -122,7 +119,7 @@ const Output = ({ output, index, removeOutput }) => {
           (Number(temporaryOutput.amount) || Number(output.amount) || 0)
         );
       } else if (coinFormat === 'sats') {
-        maxAmount = Number(change) + (Number(temporaryOutput.amount) || Number(output.amount) || 0);
+        maxAmount = Number(temporaryOutput.amount) > 0 ? Number(temporaryOutput.amount) + Number(change) : Number(change);
       }
       setAmount(maxAmount);
       // Обновляем временный вывод при установке максимальной суммы
@@ -132,6 +129,13 @@ const Output = ({ output, index, removeOutput }) => {
 
   const handleEdit = () => {
     setEdit(true);
+    setTemporaryOutput({
+      address: output.address,
+      amount: output.amount,
+      satsFormat: output.satsFormat,
+      index: output.index,
+      addressType: output.addressType,
+    });
     setIndexEdit(true);
     setAddress(output.address);
     setAmount(output.amount);

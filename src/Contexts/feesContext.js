@@ -9,7 +9,7 @@ import useFeeSelect from '../Hooks/useFeeSelect';
 const FeesContext = createContext();
 
 export const FeesProvider = ({ children }) => {
-  const { outputs, input, change } = useTransaction();
+  const { outputs, input, change, temporaryOutput } = useTransaction();
   const { paymentAddressType, balance } = useWallet();
   const [feeState, setFeeState] = useState('medium');
   const [totalFee, setTotalFee] = useState(0);
@@ -79,13 +79,14 @@ export const FeesProvider = ({ children }) => {
 
     // Обрабатываем выходы
     if (Array.isArray(outputs)) {
-      outputs.forEach(output => {
+      outputs.forEach((output, index) => {
         if (output && output.addressType) {
+          const currentOutput = temporaryOutput && temporaryOutput.index === index ? temporaryOutput : output;
           const outputType = output.addressType.toLowerCase();
           if (bytesPerType[outputType]) {
             totalVBytes += bytesPerType[outputType].output;
-            outputTotalAmount += output.amount;
-            console.log('output', output);
+            console.log(`currentOutput.amount: ${currentOutput.amount}`);
+            outputTotalAmount += currentOutput.amount;
           }
         }
       });
@@ -105,13 +106,11 @@ export const FeesProvider = ({ children }) => {
       return { totalVBytes: 0, fee: 0 };
     }
     setBalanceAfterOutput(balanceAfterOutput);
-    console.log('CONTEXT BEFORE IF changeOutputPrice', changeOutputPrice, `feeSum: ${feeSum}`, `change: ${change}`);
     if (change - feeSum >= 1000 && paymentAddressType) {
       totalVBytes += bytesPerType[paymentAddressType].output;
       feeSum = getFeeValue(totalVBytes);
       setTotalChange(change - feeSum);
     } else if (changeOutputPrice <= (change - feeSum - changeOutputPrice) && (change - feeSum - changeOutputPrice) >= 546) {
-      console.log('CONTEXT changeOutputPrice', changeOutputPrice, `feeSum: ${feeSum}`, `change: ${change}`);
       totalVBytes += bytesPerType[paymentAddressType].output;
       feeSum = getFeeValue(totalVBytes);
       setTotalChange(change - feeSum);
@@ -133,12 +132,9 @@ export const FeesProvider = ({ children }) => {
       totalVBytes += bytesPerType[paymentAddressType].input * inputCount;
 
       feeSum = getFeeValue(totalVBytes);
-      console.log('feeSum', feeSum);
-      
+      console.log(`outputTotalAmount: ${outputTotalAmount}`);
       const afterAfterChange = inputTotalAmount - outputTotalAmount - feeSum;
-      console.log(`afterAfterChange: ${afterAfterChange}`);
       setBalanceAfterOutput(afterAfterChange);
-      console.log('afterAfterChange', afterAfterChange, `inputTotalAmount: ${inputTotalAmount}, outputTotalAmount: ${outputTotalAmount}, feeSum: ${feeSum}`);
       if (afterAfterChange < 0) {
         setTotalChange(0);
         setFeeInput([]);
@@ -156,7 +152,8 @@ export const FeesProvider = ({ children }) => {
     paymentAddressType, 
     input,
     changeOutputPrice,
-    selectOptimalFee, 
+    selectOptimalFee,
+    temporaryOutput,
     outputs, 
     change,
     confirmFee,

@@ -16,7 +16,7 @@ const CreateTransaction = () => {
   const [signedPsbt, setSignedPsbt] = useState(null);
   const [txid, setTxid] = useState(null);
 
-  console.log('signedPsbt', signedPsbt);
+  // console.log('signedPsbt', signedPsbt);
 
   useEffect(() => {
     setPsbt(null);
@@ -55,9 +55,7 @@ const CreateTransaction = () => {
           value: input.value
         });
       });
-    }
-    console.log('CREATE TRANSACTION changeOutputPrice', changeOutputPrice,`change: ${change}`, `totalFee: ${totalFee}`);
-    // Добавляем дополнительный выход, если (change - fee) > 600
+    }    // Добавляем дополнительный выход, если (change - fee) > 600
     if (change - totalFee >= 1000) {
       psbtOutputs.push({
         address: paymentAddress,
