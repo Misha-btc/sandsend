@@ -54,6 +54,7 @@ const useCreatePSBT = () => {
             amount: BigInt(input.value),
           },
           redeemScript: unlockingScript.redeemScript,
+          sighashType: btc.SigHash.ALL
         });
 
       } else if (addressType === 'p2wpkh') {
@@ -66,6 +67,7 @@ const useCreatePSBT = () => {
             amount: BigInt(input.value),
           },
           redeemScript: unlockingScript.redeemScript,
+          sighashType: btc.SigHash.ALL
         });
       }
     });

@@ -85,7 +85,6 @@ export const FeesProvider = ({ children }) => {
           const outputType = output.addressType.toLowerCase();
           if (bytesPerType[outputType]) {
             totalVBytes += bytesPerType[outputType].output;
-            console.log(`currentOutput.amount: ${currentOutput.amount}`);
             outputTotalAmount += currentOutput.amount;
           }
         }
@@ -132,7 +131,6 @@ export const FeesProvider = ({ children }) => {
       totalVBytes += bytesPerType[paymentAddressType].input * inputCount;
 
       feeSum = getFeeValue(totalVBytes);
-      console.log(`outputTotalAmount: ${outputTotalAmount}`);
       const afterAfterChange = inputTotalAmount - outputTotalAmount - feeSum;
       setBalanceAfterOutput(afterAfterChange);
       if (afterAfterChange < 0) {
