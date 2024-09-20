@@ -24,12 +24,13 @@ export const FeesProvider = ({ children }) => {
 
   const calcEstimatedFee = useCallback(() => {
     const getFeeValue = (totalVBytes) => {
-      if (feeState !== 'custom') {
-        const index = feeState === 'low' ? 1 : feeState === 'medium' ? 2 : feeState === 'high' ? 3 : 0;
-        if (fees && fees[index]) {
-          return Math.ceil(fees[index] * totalVBytes);
-        } else {
-          return 0;
+      if (feeState !== 'custom' && fees) {
+        if (feeState === 'low') {
+          return Math.ceil((fees[3] + fees[2]) / 2 * totalVBytes);
+        } else if (feeState === 'medium') {
+          return Math.ceil((fees[2] + fees[1]) / 2 * totalVBytes);
+        } else if (feeState === 'high') {
+          return Math.ceil(fees[1] * totalVBytes);
         }
       } else {
         if (confirmFee) {
