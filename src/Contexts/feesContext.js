@@ -21,8 +21,14 @@ export const FeesProvider = ({ children }) => {
   const [totalChange, setTotalChange] = useState(null);
   const [balanceAfterOutput, setBalanceAfterOutput] = useState(null);
   const [changeOutputPrice, setChangeOutputPrice] = useState(0);
+  const [dust, setDust] = useState(0);
+  const [dustWay, setDustWay] = useState(null);
+  const [dustToFee, setDustToFee] = useState(0);
+  const [dustToChange, setDustToChange] = useState(0);
 
   const calcEstimatedFee = useCallback(() => {
+    if (dustWay !== null) return;
+
     const getFeeValue = (totalVBytes) => {
       if (feeState !== 'custom' && fees) {
         if (feeState === 'low') {
@@ -110,13 +116,17 @@ export const FeesProvider = ({ children }) => {
       totalVBytes += bytesPerType[paymentAddressType].output;
       feeSum = getFeeValue(totalVBytes);
       setTotalChange(change - feeSum);
+      setDust(0);
     } else if (changeOutputPrice <= (change - feeSum - changeOutputPrice) && (change - feeSum - changeOutputPrice) >= 546) {
+      console.log('changeOutputPrice', changeOutputPrice);
       totalVBytes += bytesPerType[paymentAddressType].output;
       feeSum = getFeeValue(totalVBytes);
       setTotalChange(change - feeSum);
-
+      setDust(0);
     } else if (change - feeSum < 0 && paymentAddressType && balanceChange > 0) {
+      console.log('change', change, `feeSum: ${feeSum}`);
       const selectedUtxos = selectOptimalFee(feeSum, change, input, bytesPerType, balanceAfterOutput, paymentAddressType, getFeeValue, balanceChange);
+      setDust(0);
       if (!selectedUtxos) {
         console.log('No selected UTXOs or insufficient funds');
         return { totalVBytes: 0, fee: 0 };
@@ -141,19 +151,27 @@ export const FeesProvider = ({ children }) => {
       }
       setTotalChange(afterAfterChange > 0 ? afterAfterChange : 0);
 
-    } else {
+    } else if (change - feeSum === 0) {
+      return { totalVBytes: 0, fee: feeSum };
+    } else if (dustToFee) {
+      return { totalVBytes: 0, fee: feeSum };
+    }
+    else {
       setTotalChange(0);
+      setDust(change);
       setFeeInput([]);
     }
 
     return { totalVBytes, fee: feeSum };
   }, [
-    paymentAddressType, 
+    paymentAddressType,
     input,
+    dustToFee,
     changeOutputPrice,
     selectOptimalFee,
     temporaryOutput,
     outputs, 
+    dustWay,
     change,
     confirmFee,
     balance,
@@ -163,9 +181,10 @@ export const FeesProvider = ({ children }) => {
   ]);
 
   useEffect(() => {
+    if (dustWay !== null) return;
     const { fee } = calcEstimatedFee();
     setTotalFee(fee);
-  }, [calcEstimatedFee]);
+  }, [calcEstimatedFee, dustWay]);
 
   return (
     <FeesContext.Provider value={{ 
@@ -177,12 +196,21 @@ export const FeesProvider = ({ children }) => {
       feeState, 
       confirmFee,
       feeInput,
+      dust,
+      setDustToFee,
+      setDustToChange,
+      dustToFee,
+      dustToChange,
+      setDust,
+      dustWay,
+      setDustWay,
       totalChange,
       balanceAfterOutput,
       setFeeInput,
       setConfirmFee,
-      setFeeState, 
-      customFee, setCustomFee
+      setFeeState,
+      customFee,
+      setCustomFee,
     }}>
       {children}
     </FeesContext.Provider>

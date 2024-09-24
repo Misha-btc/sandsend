@@ -65,8 +65,6 @@ const Output = ({ output, index, removeOutput }) => {
     setErrors({ ...errors, amountError: '' });
     setInputError('');
     setAmount(newAmount);
-    console.log(`newAmount: ${newAmount}`);
-    // Обновляем временный вывод при изменении сумм
     setTemporaryOutput({ amount: newAmount, index: index, coinFormat: coinFormat });
   };
 

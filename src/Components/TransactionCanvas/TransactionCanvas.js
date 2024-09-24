@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTransaction } from '../../Contexts/TransactionContext';
 import Output from './Output';
 import InputElement from './InputElement';
@@ -12,12 +12,33 @@ import FeeInput from './FeeInput';
 import ChangeOutput from './ChangeOutput';
 
 function TransactionCanvas() {
-  const { outputs, removeOutput, input, removeInput, change, removeAll } = useTransaction();
+  const { outputs, removeOutput, input, removeInput, removeAll, updateSpecificOutput} = useTransaction();
   const { isConnected } = useWallet();
-  const { feeState, customFee, totalFee, setFeeState, setCustomFee, setTotalFee, feeInput, totalChange } = useFees();
+  const { totalFee, feeInput, totalChange, dust, setDust, setTotalChange, dustWay, setDustWay, setTotalFee, dustToFee, dustToChange, setDustToFee, setDustToChange } = useFees();
+
+  useEffect(() => {
+    setDustWay(null);
+    setDust(0);
+    setDustToFee(false);
+  }, [outputs, input, setDustWay, setDust, removeOutput, removeInput, setDustToFee, removeAll]);
+
 
   if (!isConnected) {
     return null; // Ничего не рендерим, если кошелек не подключен
+  }
+
+  const handleDust = (type) => {
+    if (type === 'fee') {
+      setDustWay('fee');
+      setTotalFee(dust);
+      setDustToFee(true);
+      setDust(0);
+    } else if (type === 'output') {
+      setDustWay('output');
+      const lastOutput = outputs[outputs.length - 1];
+      updateSpecificOutput(outputs.length - 1, { amount: lastOutput.amount + dust - totalFee });
+      setDust(0);
+    }
   }
 
   return (
@@ -72,11 +93,36 @@ function TransactionCanvas() {
               {totalChange > 0 && (
                 <ChangeOutput title="change" changeOutput={totalChange}/>
               )}
-              {totalFee > 0 && (
-                <ChangeOutput title="fee" changeOutput={totalFee}/>
+              {dust > 0 ? (
+                <ChangeOutput title="dust" changeOutput={dust}>
+                  <div className="flex flex-row bg-orange-600 rounded-bl-md rounded-br-md mt-2">
+                    <div className="absolute top-0 right-0 p-1">
+                      <span 
+                        className="text-white cursor-pointer" 
+                        onClick={() => alert(
+                          "Dust is a small amount of bitcoin that is too small to send economically. " +
+                          "You can add it to the fee or to the previous output."
+                        )}
+                      >
+                        ?
+                      </span>
+                    </div>
+                    <Button
+                      onClick={() => handleDust('fee')}
+                      title="fee"
+                      className="w-1/2 text-white rounded-bl-md"
+                    />
+                    <Button
+                      onClick={() => handleDust('output')}
+                      title="prev output"
+                      className="w-1/2 text-white rounded-br-md"
+                    />
+                  </div>
+                </ChangeOutput>
+              ) : (
+                totalFee > 0 && <ChangeOutput title="fee" changeOutput={totalFee}/>
               )}
-            </div> 
-            
+            </div>
           </div>
         </div>
 
@@ -86,7 +132,7 @@ function TransactionCanvas() {
         <Button
           title="Clear"
           onClick={removeAll}
-          className="bg-cyan-600 text-white p-2 rounded hover:bg-cyan-500" // Использована bg-opacity для прозрачности
+          className="bg-cyan-600 text-white p-2 rounded hover:bg-cyan-500"
         />
       </div>
       <CreateTransaction />
